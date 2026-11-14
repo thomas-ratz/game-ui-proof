@@ -9,7 +9,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-APPLY = Path(__file__).with_name("apply_godot.py")
+APPLY = Path(__file__).resolve().with_name("apply_godot.py")
 SHADER = """shader_type canvas_item;
 
 // tube colours
