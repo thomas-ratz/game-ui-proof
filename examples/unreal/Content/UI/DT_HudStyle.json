@@ -1,0 +1,14 @@
+[
+	{
+		"Name": "Default",
+		"Title": "Stamina",
+		"PanelColor": { "R": 0.007, "G": 0.008, "B": 0.014, "A": 0.92 },
+		"TextColor": { "R": 0.913, "G": 0.930, "B": 0.955, "A": 1.0 },
+		"AccentColor": { "R": 0.078, "G": 0.638, "B": 0.565, "A": 1.0 },
+		"Tint": { "SpecifiedColor": { "R": 1.0, "G": 0.434, "B": 0.015, "A": 1.0 }, "ColorUseRule": "UseColor_Specified" },
+		"CornerRadius": 12.0,
+		"Padding": { "Left": 16.0, "Top": 16.0, "Right": 16.0, "Bottom": 16.0 },
+		"FadeSeconds": 0.25,
+		"bShowIcons": true
+	}
+]

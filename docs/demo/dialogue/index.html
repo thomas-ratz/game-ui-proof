@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dialogue box</title>
+<link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+<script src="../kit/kit.js"></script>
+<script src="../scene.js"></script>
+<script>
+// Neutral demo: a dialogue box (or bubble) with a typing line over the demo level.
+const LINE = "Careful up there. The old bridge only holds one of us, and I'm not volunteering.";
+const SPEAKER = "BRAMBLE";
+const FONT = "ui-monospace, Consolas, monospace";
+const FACE = ["..1111..", ".122221.", "12322321", "12222221", "12244221", ".122221.", "..1111.."];
+
+function wrap(ctx, text, max) {
+  const lines = [""];
+  for (const word of text.split(" ")) {
+    const next = lines.at(-1) ? lines.at(-1) + " " + word : word;
+    if (ctx.measureText(next).width > max && lines.at(-1)) lines.push(word); else lines[lines.length - 1] = next;
+  }
+  return lines;
+}
+
+Kit.start({
+  feature: "dialogue",
+  groups: {
+    DialogueBox: { note: "the dialogue scene's exports", params: {
+      Width: { value: 1280, min: 800, max: 1800, step: 16, unit: "px" },
+      Padding: { value: 32, min: 12, max: 64, step: 2, unit: "px" },
+      PortraitSize: { value: 160, min: 96, max: 240, step: 8, unit: "px" },
+      FontSize: { value: 32, options: [24, 32, 40], unit: "px" },
+      LineGap: { value: 12, min: 0, max: 32, step: 2, unit: "px" },
+      CharsPerSecond: { value: 30, min: 8, max: 90, step: 1, hint: "typing speed" },
+      CornerRadius: { value: 14, min: 0, max: 32, step: 1, unit: "px" },
+      BottomMargin: { value: 48, min: 0, max: 160, step: 4, unit: "px" },
+    } },
+    "theme: Dialogue": { note: "theme colours", params: {
+      box: { value: "#14161ff0" }, border: { value: "#ffd16666" }, text: { value: "#f2f4f8ff" },
+      name: { value: "#ffd166ff" }, portrait_bg: { value: "#2a3350ff" }, arrow: { value: "#4fd1c5ff" },
+    } },
+  },
+  variants: { a: {}, b: { "DialogueBox.Width": 760, "DialogueBox.FontSize": 24 } },
+  draw(ctx, v, s) {
+    Demo.draw(ctx);
+    const d = v.DialogueBox, k = v["theme: Dialogue"], bubble = s.variant === "b";
+    const shown = s.state === "done" ? LINE.length : Math.min(LINE.length, Math.floor((s.t % (LINE.length / d.CharsPerSecond + 1.2)) * d.CharsPerSecond));
+    ctx.font = `bold ${d.FontSize}px ${FONT}`; ctx.textBaseline = "top";
+    const textLeft = bubble ? d.Padding : d.Padding * 2 + d.PortraitSize;
+    const lines = wrap(ctx, LINE, d.Width - textLeft - d.Padding);
+    const textH = d.FontSize + 14 + lines.length * (d.FontSize + d.LineGap);
+    const h = Math.max(bubble ? 0 : d.PortraitSize, textH) + 2 * d.Padding;
+    const [hx, hy] = Demo.hero;
+    const x = bubble ? Math.min(1920 - d.Width - 24, Math.max(24, hx - d.Width / 2)) : (1920 - d.Width) / 2;
+    const y = bubble ? hy - 140 - h : 1080 - d.BottomMargin - h;
+    ctx.fillStyle = k.box; ctx.strokeStyle = k.border; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.roundRect(x, y, d.Width, h, d.CornerRadius);
+    if (bubble) { ctx.moveTo(hx - 18, y + h); ctx.lineTo(hx, y + h + 34); ctx.lineTo(hx + 18, y + h); }
+    ctx.fill(); ctx.stroke();
+    if (!bubble) {
+      ctx.fillStyle = k.portrait_bg; ctx.beginPath(); ctx.roundRect(x + d.Padding, y + d.Padding, d.PortraitSize, d.PortraitSize, d.CornerRadius / 2); ctx.fill();
+      const px = d.PortraitSize / 10, pal = { 1: "#1d1d2b", 2: "#8fd17a", 3: "#1d1d2b", 4: "#e2574c" };
+      FACE.forEach((row, ry) => [...row].forEach((c, rx) => { if (pal[c]) { ctx.fillStyle = pal[c]; ctx.fillRect(x + d.Padding + px * (1 + rx), y + d.Padding + px * (1.5 + ry), px, px); } }));
+    }
+    ctx.fillStyle = k.name; ctx.fillText(SPEAKER, x + textLeft, y + d.Padding);
+    ctx.fillStyle = k.text;
+    let left = shown;
+    lines.forEach((line, i) => {
+      const part = line.slice(0, Math.max(0, left)); left -= line.length + 1;
+      ctx.fillText(part, x + textLeft, y + d.Padding + d.FontSize + 14 + i * (d.FontSize + d.LineGap));
+    });
+    if (shown >= LINE.length) {
+      const bob = Math.sin(s.t * 6) * 4;
+      ctx.fillStyle = k.arrow; ctx.beginPath();
+      ctx.moveTo(x + d.Width - d.Padding - 24, y + h - d.Padding - 18 + bob); ctx.lineTo(x + d.Width - d.Padding, y + h - d.Padding - 18 + bob);
+      ctx.lineTo(x + d.Width - d.Padding - 12, y + h - d.Padding - 4 + bob); ctx.fill();
+    }
+  },
+});
+</script>
+</body>
+</html>

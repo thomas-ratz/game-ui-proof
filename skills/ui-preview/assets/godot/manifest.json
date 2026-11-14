@@ -1,0 +1,14 @@
+{
+  "title": "FEATURE",
+  "stage": [1920, 1080],
+  "states": [
+    { "id": "closed", "caption": "The game before the dialog opens.", "shotTime": 0 },
+    { "id": "opening", "caption": "Sliding in (mid-animation).", "shotTime": 0.1 },
+    { "id": "open", "caption": "Open, waiting for an answer.", "shotTime": 0 }
+  ],
+  "variants": {
+    "a": { "name": "Compact", "note": "Title, one line of text, the two prompts." },
+    "b": { "name": "Wide", "note": "A wider, shorter box that keeps the text on one line." }
+  },
+  "recommend": { "variant": "a", "why": "Reads as a pause, not a page." }
+}

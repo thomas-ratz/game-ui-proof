@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Platformer HUD</title>
+<link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+<script src="../kit/kit.js"></script>
+<script src="../scene.js"></script>
+<script>
+// A neutral demo: a made-up platformer's HUD over a procedural pixel-art level (no game's art), used for the README
+// GIF and as a live example. Health cells, a coin counter, an energy bar and an ability slot.
+const healthAt = (state, t) => state === "low" ? 1 : state === "hurt" ? Math.max(1, 5 - Math.floor(t % 6)) : 5;
+
+Kit.start({
+  feature: "hud",
+  groups: {
+    Hud: { note: "the HUD scene's exports", params: {
+      X: { section: "Layout", value: 40, min: 0, max: 200, step: 4, unit: "px" },
+      Y: { section: "Layout", value: 40, min: 0, max: 200, step: 4, unit: "px" },
+      Padding: { section: "Layout", value: 16, min: 0, max: 40, step: 2, unit: "px" },
+      CornerRadius: { section: "Layout", value: 8, min: 0, max: 24, step: 1, unit: "px" },
+      Cells: { section: "Health", value: 5, min: 3, max: 10, step: 1 },
+      CellSize: { section: "Health", value: 28, min: 12, max: 56, step: 2, unit: "px" },
+      CellGap: { section: "Health", value: 8, min: 0, max: 24, step: 2, unit: "px" },
+      ShakePixels: { section: "Health", value: 8, min: 0, max: 24, step: 1, unit: "px", hint: "how far a hit shakes the panel" },
+      PulseSeconds: { section: "Health", value: 0.7, min: 0.2, max: 2, step: 0.05, unit: "s" },
+      EnergyWidth: { section: "Energy", value: 220, min: 80, max: 400, step: 4, unit: "px" },
+      EnergyHeight: { section: "Energy", value: 12, min: 4, max: 32, step: 2, unit: "px" },
+      FontSize: { section: "Coins", value: 32, options: [16, 24, 32, 40, 48], unit: "px" },
+      SlotSize: { section: "Ability", value: 96, min: 48, max: 160, step: 4, unit: "px", hint: "the ability slot, bottom right" },
+    } },
+    "theme: Hud": { note: "theme colours", params: {
+      panel: { value: "#14161fcc" }, border: { value: "#e9f1f733" }, cell_full: { value: "#ff5d6cff" },
+      cell_empty: { value: "#ffffff26" }, energy: { value: "#4fd1c5ff" }, coin: { value: "#f4c542ff" },
+      text: { value: "#f5f7faff" }, warning: { value: "#ffb020ff" },
+    } },
+    Preview: { preview: true, params: {
+      ReduceMotion: { value: false, hint: "no shake" },
+      ReduceFlashing: { value: false, hint: "a steady warning colour instead of the pulse" },
+    } },
+  },
+  variants: {
+    a: {},
+    b: { "Hud.CellSize": 40, "Hud.Padding": 0, "Hud.EnergyHeight": 6, "theme: Hud.panel": "#00000000", "theme: Hud.border": "#00000000" },
+  },
+  draw(ctx, v, s) {
+    Demo.draw(ctx);
+    const h = v.Hud, k = v["theme: Hud"], t = s.t, motion = !v.Preview.ReduceMotion;
+    const hp = Math.min(h.Cells, healthAt(s.state, t)), coins = 120 + (s.state === "explore" ? Math.floor(t / 2) : 0);
+    const sinceHit = s.state === "hurt" ? t % 1 : 9;
+    const shake = motion && sinceHit < 0.3 ? Math.sin(sinceHit * 70) * h.ShakePixels * (1 - sinceHit / 0.3) : 0;
+    const pulse = hp <= 1 ? (v.Preview.ReduceFlashing ? 1 : 0.5 + 0.5 * Math.sin(t * Math.PI * 2 / h.PulseSeconds)) : 0;
+
+    const cellsW = h.Cells * h.CellSize + (h.Cells - 1) * h.CellGap;
+    const w = Math.max(cellsW, h.EnergyWidth) + 2 * h.Padding;
+    const ph = h.Padding * 2 + h.CellSize + 14 + h.EnergyHeight + 14 + h.FontSize;
+    const x = h.X + shake, y = h.Y;
+    ctx.fillStyle = k.panel; ctx.beginPath(); ctx.roundRect(x, y, w, ph, h.CornerRadius); ctx.fill();
+    ctx.strokeStyle = k.border; ctx.lineWidth = 2; ctx.stroke();
+
+    for (let i = 0; i < h.Cells; i++) {
+      const cx = x + h.Padding + i * (h.CellSize + h.CellGap), cy = y + h.Padding;
+      const full = i < hp, breaking = i === hp && sinceHit < 0.35;
+      ctx.fillStyle = full ? (pulse > 0.5 ? k.warning : k.cell_full) : k.cell_empty;
+      const grow = breaking ? 1 + sinceHit : 1, sz = h.CellSize * grow, off = (sz - h.CellSize) / 2;
+      if (breaking) { ctx.globalAlpha = 1 - sinceHit / 0.35; ctx.fillStyle = k.cell_full; }
+      ctx.beginPath(); ctx.roundRect(cx - off, cy - off, sz, sz, Math.min(h.CornerRadius / 2, sz / 2)); ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    const ey = y + h.Padding + h.CellSize + 14, energy = s.state === "ability" ? Math.min(1, (t % 3) / 2.5) : 0.6 + 0.4 * Math.abs(Math.sin(t * 0.6));
+    ctx.fillStyle = k.cell_empty; ctx.beginPath(); ctx.roundRect(x + h.Padding, ey, h.EnergyWidth, h.EnergyHeight, h.EnergyHeight / 2); ctx.fill();
+    ctx.fillStyle = k.energy; ctx.beginPath(); ctx.roundRect(x + h.Padding, ey, Math.max(h.EnergyHeight, h.EnergyWidth * energy), h.EnergyHeight, h.EnergyHeight / 2); ctx.fill();
+
+    const ty = ey + h.EnergyHeight + 14, r = h.FontSize * 0.38;
+    ctx.fillStyle = k.coin; ctx.beginPath(); ctx.arc(x + h.Padding + r, ty + h.FontSize / 2, r, 0, 7); ctx.fill();
+    ctx.fillStyle = k.text; ctx.font = `bold ${h.FontSize}px ui-monospace, Consolas, monospace`; ctx.textBaseline = "middle";
+    ctx.fillText(`× ${coins}`, x + h.Padding + 2 * r + 10, ty + h.FontSize / 2 + 2);
+
+    const S = h.SlotSize, sx = 1920 - 48 - S, sy = 1080 - 48 - S, ready = s.state !== "ability" || t % 3 > 2.5;
+    ctx.fillStyle = k.panel; ctx.beginPath(); ctx.roundRect(sx, sy, S, S, h.CornerRadius); ctx.fill();
+    ctx.strokeStyle = ready ? k.energy : k.border; ctx.lineWidth = 3; ctx.stroke();
+    if (!ready) { ctx.save(); ctx.beginPath(); ctx.roundRect(sx, sy, S, S, h.CornerRadius); ctx.clip(); ctx.fillStyle = "#00000066"; ctx.beginPath(); ctx.moveTo(sx + S / 2, sy + S / 2); ctx.arc(sx + S / 2, sy + S / 2, S * 0.6, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (1 - (t % 3) / 2.5)); ctx.fill(); ctx.restore(); }
+    ctx.fillStyle = k.text; ctx.font = `bold ${Math.round(S * 0.4)}px ui-monospace, Consolas, monospace`; ctx.textAlign = "center";
+    ctx.fillText("»", sx + S / 2, sy + S / 2 + 2); ctx.textAlign = "left";
+  },
+});
+</script>
+</body>
+</html>

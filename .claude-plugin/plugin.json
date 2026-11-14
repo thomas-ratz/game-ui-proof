@@ -1,0 +1,10 @@
+{
+  "name": "game-ui-proof",
+  "version": "1.0.0",
+  "description": "Tune your game's UI in the browser before your AI agent builds it: a mockup over a real screenshot, a panel of sliders, and a values.json your engine applies (Godot, Unity, Unreal).",
+  "author": { "name": "Thomas Ratzicha" },
+  "homepage": "https://github.com/thomas-ratz/game-ui-proof",
+  "repository": "https://github.com/thomas-ratz/game-ui-proof",
+  "license": "MIT",
+  "keywords": ["game-ui", "godot", "unity", "unreal", "hud", "ui-design", "agent-skill"]
+}

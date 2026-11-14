@@ -1,0 +1,14 @@
+{
+  "name": "game-ui-proof",
+  "description": "game-ui-proof: tunable HTML previews of game UI, approved as a values.json your engine applies.",
+  "owner": {
+    "name": "Thomas Ratzicha"
+  },
+  "plugins": [
+    {
+      "name": "game-ui-proof",
+      "source": "./",
+      "description": "Tunable HTML previews of game UI before it's built, with an approved values.json your engine applies."
+    }
+  ]
+}

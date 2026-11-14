@@ -1,0 +1,13 @@
+{
+  "title": "Level clear transition",
+  "stage": [1920, 1080],
+  "states": [
+    { "id": "clear", "caption": "Level cleared: the screen closes on the hero, the banner drops in (loops). Shot: mid-close.", "shotTime": 0.5 }
+  ],
+  "variants": {
+    "a": { "name": "Iris", "note": "A circle closes on the hero, then STAGE CLEAR." },
+    "b": { "name": "Wipe", "note": "A diagonal band sweeps across." },
+    "c": { "name": "Pixel dissolve", "note": "The screen breaks into blocks that fill in." }
+  },
+  "recommend": { "variant": "a", "why": "The iris ends on the hero, so the player sees who they're cheering for; the wipe hides them first." }
+}

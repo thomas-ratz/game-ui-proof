@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FEATURE</title>
+<link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+<script src="../kit/kit.js"></script>
+<script src="../kit/godot_theme.js"></script>
+<script src="../kit/project.js"></script>
+<script>
+// TEMPLATE (Godot): a confirm dialog drawn from the project's Theme over a game screenshot.
+// Replace the theme names with the type variations the build will use, and the groups and draw() with the feature's.
+// "theme: <name>" groups write back into the Theme .tres; ConfirmDialog is the script whose [Export]s get the rest.
+const PANEL = "PanelContainer", TITLE = "Label", BODY = "Label";
+const G = GodotTheme;
+
+G.load().then(() => Kit.start({
+  feature: "FEATURE",
+  // fonts: ['16px "Body"'],  // wait for the game's fonts (declared in ../kit/project.css)
+  images: {
+    // backdrop: "img/main.png",  // from game_shots.gd: the level with the UI hidden
+  },
+  groups: {
+    ConfirmDialog: { note: "ui/ConfirmDialog exports", params: {
+      Width: { value: 480, min: 240, max: 960, step: 8, unit: "px" },
+      Height: { value: 220, min: 120, max: 600, step: 8, unit: "px" },
+      Padding: { value: 24, min: 0, max: 64, step: 4, unit: "px" },
+      OpenSeconds: { value: 0.25, min: 0, max: 1, step: 0.05, unit: "s" },
+    } },
+    ...G.themeGroups([...new Set([PANEL, TITLE, BODY])]),
+    Preview: { preview: true, params: {
+      Input: { value: "keyboard", options: Object.keys(G.GLYPHS) },
+      ReduceMotion: { value: false, hint: "open without the slide" },
+    } },
+  },
+  variants: { a: {}, b: { "ConfirmDialog.Width": 640, "ConfirmDialog.Height": 180 } },
+  draw(ctx, v, s) {
+    G.use(v);
+    const W = ctx.canvas.width, H = ctx.canvas.height, d = v.ConfirmDialog;
+    if (s.images.backdrop) ctx.drawImage(s.images.backdrop, 0, 0);
+    else { ctx.fillStyle = "#2b3a55"; ctx.fillRect(0, 0, W, H); }
+    if (s.state === "closed") return;
+    const k = s.state === "opening" && d.OpenSeconds > 0 ? Math.min(1, s.t / d.OpenSeconds) : 1, ease = 1 - (1 - k) ** 3;
+    const x = (W - d.Width) / 2, y = (H - d.Height) / 2 + (v.Preview.ReduceMotion ? 0 : (1 - ease) * 32);
+    ctx.globalAlpha = ease;
+    G.panel(ctx, G.style(PANEL), x, y, d.Width, d.Height);
+    G.text(ctx, "Quit to title?", x + d.Width / 2, y + d.Padding, { type: TITLE, align: "center" });
+    G.paragraph(ctx, "Progress since the last checkpoint will be lost.", x + d.Padding, y + d.Padding + G.lineHeight(ctx, { type: TITLE }),
+      d.Width - 2 * d.Padding, { type: BODY, align: "center" });
+    G.hints(ctx, [["ui_accept", "Quit"], ["ui_cancel", "Stay"]], x + d.Width / 2, y + d.Height - d.Padding - G.CAP.height,
+      v.Preview.Input, { align: "center", type: BODY });
+    ctx.globalAlpha = 1;
+  },
+}));
+</script>
+</body>
+</html>

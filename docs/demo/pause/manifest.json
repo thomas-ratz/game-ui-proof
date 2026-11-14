@@ -1,0 +1,14 @@
+{
+  "title": "Pause menu",
+  "stage": [1920, 1080],
+  "states": [
+    { "id": "open", "caption": "Paused mid-level, Resume focused.", "shotTime": 0.4 },
+    { "id": "browse", "caption": "Moving the focus down the list (loops).", "shotTime": 1.3 }
+  ],
+  "variants": {
+    "a": { "name": "Card", "note": "A centred card over the dimmed level. Familiar, but it hides the middle of the screen." },
+    "b": { "name": "Sidebar", "note": "A full-height column on the left; the level stays visible on the right, so you can see what you paused on." },
+    "c": { "name": "Minimal", "note": "Just the list over a darker dim, no panel. Cleanest, weakest focus." }
+  },
+  "recommend": { "variant": "b", "why": "Players pause to check the situation: the sidebar keeps the level in view, and the focus bar reads well on a pad." }
+}

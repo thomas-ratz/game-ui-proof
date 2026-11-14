@@ -1,0 +1,13 @@
+{
+  "title": "FEATURE",
+  "stage": [1920, 1080],
+  "states": [
+    { "id": "shown", "caption": "The panel at rest.", "shotTime": 0 },
+    { "id": "fading", "caption": "Fading in (HudStyle.fadeSeconds), caught halfway.", "shotTime": 0.12 }
+  ],
+  "variants": {
+    "a": { "name": "As shipped", "note": "Every value as the project's files have it today." },
+    "b": { "name": "Square, wide", "note": "Tighter corner radius and a wider panel." }
+  },
+  "recommend": { "variant": "a", "why": "Example page: replace with the real choice." }
+}

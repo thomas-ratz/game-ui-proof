@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FEATURE</title>
+<link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+<script src="../kit/kit.js"></script>
+<script src="../kit/unreal_theme.js"></script>
+<script>
+// UNREAL EXAMPLE: a HUD panel whose colours, sizes and timings start from a DataTable exported to JSON (or CSV) under
+// the project. Replace the path, the row and field names read with get() and draw() with the feature's.
+//   "table: DT_HudStyle/<Row>"  one group per row (loadTable); written back by re-importing the edited export.
+//   "HudPanel"                  values that don't exist yet; they become UPROPERTY(EditAnywhere, Category = "HudPanel").
+const TABLE = "Content/UI/DT_HudStyle.json", ROW = "Default"; // from the project root
+const FONT = "sans-serif"; // the game's font, declared in ../kit/project.css
+
+UnrealTheme.loadTable(TABLE).then(() => Kit.start({
+  feature: "FEATURE",
+  images: {
+    // backdrop: "img/backdrop.png",   // a real game screenshot of this spot, UI hidden
+  },
+  groups: {
+    HudPanel: { note: "UHudPanel UPROPERTYs", params: {
+      X: { value: 48, min: 0, max: 800, step: 4, unit: "px" },
+      Y: { value: 48, min: 0, max: 600, step: 4, unit: "px" },
+      Width: { value: 520, min: 200, max: 1000, step: 4, unit: "px" },
+      TitleSize: { value: 32, min: 12, max: 72, step: 2, unit: "px" },
+      Fill: { value: 0.7, min: 0, max: 1, step: 0.05, hint: "how full the bar is in this mock" },
+    } },
+    ...UnrealTheme.groups(),
+  },
+  variants: { a: {}, b: { [`table: DT_HudStyle/${ROW}.CornerRadius`]: 2, "HudPanel.Width": 680 } },
+  draw(ctx, v, s) {
+    UnrealTheme.use(v);
+    const r = field => UnrealTheme.get(ROW, field);
+    const p = v.HudPanel, size = p.TitleSize, pad = r("Padding/Left");
+    const h = r("Padding/Top") + r("Padding/Bottom") + pad + size + 24;
+
+    if (s.images.backdrop) ctx.drawImage(s.images.backdrop, 0, 0);
+    else { ctx.fillStyle = "#40454d"; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height); }
+    ctx.globalAlpha = s.state === "fading" ? Math.min(1, s.t / r("FadeSeconds")) : 1;
+
+    ctx.fillStyle = r("PanelColor");
+    ctx.beginPath(); ctx.roundRect(p.X, p.Y, p.Width, h, r("CornerRadius")); ctx.fill();
+    const top = p.Y + r("Padding/Top"), iconW = r("bShowIcons") ? size + pad : 0;
+    if (iconW) { ctx.fillStyle = r("Tint/SpecifiedColor"); ctx.fillRect(p.X + pad, top, size, size); }
+    ctx.fillStyle = r("TextColor"); ctx.font = `${size}px ${FONT}`; ctx.textBaseline = "top";
+    ctx.fillText(r("Title"), p.X + pad + iconW, top);
+    const barY = top + size + pad, barW = p.Width - pad - r("Padding/Right");
+    ctx.fillStyle = "#00000066"; ctx.fillRect(p.X + pad, barY, barW, 24);
+    ctx.fillStyle = r("AccentColor"); ctx.fillRect(p.X + pad, barY, barW * p.Fill, 24);
+    ctx.globalAlpha = 1;
+  },
+}));
+</script>
+</body>
+</html>

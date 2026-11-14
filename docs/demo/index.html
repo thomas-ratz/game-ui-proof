@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>game-ui-proof: live demo</title>
+<meta name="description" content="Tune your game's UI in the browser before your AI agent builds it. Four live previews to try, no install.">
+<style>
+  :root { --bg: #111318; --panel: #1a1d24; --border: #2c313c; --text: #e8ebf0; --dim: #9aa3b2; --accent: #ffd166; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 40px 16px 64px; }
+  h1 { font-size: 34px; margin: 0 0 8px; letter-spacing: -0.5px; }
+  h1 span { color: var(--accent); }
+  h2 { font-size: 20px; margin: 48px 0 12px; }
+  .pitch { font-size: 20px; color: var(--text); margin: 0 0 8px; max-width: 760px; }
+  .sub { color: var(--dim); margin: 0 0 24px; max-width: 760px; }
+  a { color: var(--accent); }
+  video { width: 100%; border: 1px solid var(--border); border-radius: 8px; display: block; background: #000; }
+  .note { border-left: 3px solid var(--accent); background: var(--panel); padding: 12px 16px; border-radius: 0 6px 6px 0; margin: 16px 0 0; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (min-width: 960px) { .grid { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 520px) { .grid { grid-template-columns: 1fr; } }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; }
+  .card img { width: 100%; aspect-ratio: 16 / 9; display: block; image-rendering: pixelated; border-bottom: 1px solid var(--border); }
+  .card div { padding: 12px 14px 14px; flex: 1; display: flex; flex-direction: column; }
+  .card h3 { margin: 0 0 4px; font-size: 17px; }
+  .card p { margin: 0 0 12px; color: var(--dim); font-size: 14px; flex: 1; }
+  .card nav { display: flex; gap: 14px; font-size: 14px; }
+  .card nav a:first-child { font-weight: 600; }
+  pre { background: var(--panel); border: 1px solid var(--border); border-radius: 6px; padding: 12px 16px; overflow-x: auto; font-size: 14px; }
+  ol { padding-left: 22px; max-width: 760px; }
+  li { margin: 6px 0; }
+  footer { color: var(--dim); font-size: 14px; margin-top: 56px; border-top: 1px solid var(--border); padding-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>game-ui-proof <span>live demo</span></h1>
+  <p class="pitch">Tune your game's UI in the browser before your AI agent builds it.</p>
+  <p class="sub">A Claude Code plugin: the agent draws the HUD, menu or effect over a real screenshot of your game at its real resolution, with a panel of sliders and colour pickers. You tune it and press Save. The <code>values.json</code> it writes is the spec, and a script applies it to Godot or Unity.</p>
+
+  <video src="demo.mp4" autoplay muted loop playsinline controls aria-label="A tour: tuning a HUD, picking between menu layouts, a dialogue box, a level-clear transition, the review sheet, and Save writing values.json"></video>
+
+  <h2>Try it</h2>
+  <p class="sub">Four previews of a made-up platformer's UI, the kind the agent writes for your game. Hover a value to see what it changes, click the stage to find the values behind a spot, hold Space to compare with the defaults, press Z to zoom, drag the sliders, switch variants and states (← → keys), toggle Reduce Motion. Best on a desktop browser.</p>
+  <div class="grid">
+    <section class="card"><img src="hud/thumb.png" alt="The HUD preview" loading="lazy" width="640" height="360"><div>
+      <h3>HUD</h3><p>Health cells, coins, energy and an ability slot. Hits shake the panel; the last cell pulses.</p>
+      <nav><a href="hud/">Open preview</a><a href="hud/sheet.png">Review sheet</a></nav></div></section>
+    <section class="card"><img src="pause/thumb.png" alt="The pause menu preview" loading="lazy" width="640" height="360"><div>
+      <h3>Pause menu</h3><p>Three layouts to choose from, and the one the agent recommends, with its reason.</p>
+      <nav><a href="pause/">Open preview</a><a href="pause/sheet.png">Review sheet</a></nav></div></section>
+    <section class="card"><img src="dialogue/thumb.png" alt="The dialogue box preview" loading="lazy" width="640" height="360"><div>
+      <h3>Dialogue box</h3><p>Text types out at the real speed. A box with a portrait, or a speech bubble.</p>
+      <nav><a href="dialogue/">Open preview</a><a href="dialogue/sheet.png">Review sheet</a></nav></div></section>
+    <section class="card"><img src="transition/thumb.png" alt="The level-clear transition preview" loading="lazy" width="640" height="360"><div>
+      <h3>Level clear</h3><p>Iris, wipe or pixel dissolve at real speed, and what Reduce Motion turns it into.</p>
+      <nav><a href="transition/">Open preview</a><a href="transition/sheet.png">Review sheet</a></nav></div></section>
+  </div>
+  <p class="note"><b>Save copies JSON here.</b> This site is static, so there's no local server to write files: Save copies the tuned values to your clipboard instead and keeps them as the defaults in this browser (the panel says so under the buttons). In your own project, <code>serve.py</code> runs on your machine and Save writes <code>values.json</code> next to the preview.</p>
+
+  <h2>How it works in your project</h2>
+  <ol>
+    <li>You ask Claude for a preview of a UI element. It screenshots that spot in your game and writes a page like these, using your fonts, art and theme values, with every state and a few variants.</li>
+    <li>You tune it. Every change is saved as a draft the agent can read; Save writes <code>values.json</code>, the approved spec.</li>
+    <li>A review sheet shows every state of every variant side by side.</li>
+    <li>The agent builds from the spec: <code>apply_godot.py</code> / <code>apply_uss.py</code> write the values into your theme and script defaults (dry run first). Unreal DataTables are read; writing back is by re-import.</li>
+  </ol>
+
+  <h2>Install</h2>
+  <p class="sub">Needs <a href="https://code.claude.com">Claude Code</a>, Python ≥ 3.8 with Pillow, and Chrome, Edge or Chromium. In Claude Code:</p>
+  <pre><code>/plugin marketplace add thomas-ratz/game-ui-proof
+/plugin install game-ui-proof@game-ui-proof</code></pre>
+  <p class="sub">Then ask for a preview of something in your game, or run <code>/game-ui-proof:ui-preview health bar</code>. Source, docs and sample projects: <a href="https://github.com/thomas-ratz/game-ui-proof">github.com/thomas-ratz/game-ui-proof</a>.</p>
+
+  <footer>MIT licensed. The demo level is procedural pixel art drawn in the page; no game's art is used.</footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "title": "Dialogue box",
+  "stage": [1920, 1080],
+  "states": [
+    { "id": "typing", "caption": "The line types out, letter by letter (loops).", "shotTime": 1.0 },
+    { "id": "done", "caption": "Line finished: the continue arrow bobs.", "shotTime": 0.3 }
+  ],
+  "variants": {
+    "a": { "name": "Box", "note": "A wide box along the bottom with the speaker's portrait." },
+    "b": { "name": "Bubble", "note": "A speech bubble over the speaker's head; no portrait." }
+  },
+  "recommend": { "variant": "a", "why": "Long lines and portraits need the room; save bubbles for one-line barks." }
+}

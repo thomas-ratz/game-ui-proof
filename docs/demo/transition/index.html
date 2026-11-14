@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Level clear</title>
+<link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+<script src="../kit/kit.js"></script>
+<script src="../scene.js"></script>
+<script>
+// Neutral demo: a level-clear transition in three styles, with what Reduce Motion turns it into (a plain fade).
+const FONT = "ui-monospace, Consolas, monospace";
+const ease = { linear: k => k, "ease-in": k => k * k, "ease-in-out": k => k * k * (3 - 2 * k) };
+
+Kit.start({
+  feature: "transition",
+  groups: {
+    LevelClear: { note: "the transition's exports", params: {
+      CloseSeconds: { value: 0.9, min: 0.3, max: 2, step: 0.05, unit: "s" },
+      Easing: { value: "ease-in-out", options: ["linear", "ease-in", "ease-in-out"] },
+      HoldSeconds: { value: 1.2, min: 0.3, max: 3, step: 0.1, unit: "s" },
+      BannerSize: { value: 72, options: [48, 64, 72, 96], unit: "px" },
+      BlockSize: { value: 48, min: 16, max: 120, step: 8, unit: "px", hint: "c: dissolve blocks" },
+    } },
+    "theme: LevelClear": { note: "theme colours", params: {
+      cover: { value: "#0b0d14ff" }, banner: { value: "#ffd166ff" }, shadow: { value: "#e2574cff" },
+    } },
+    Preview: { preview: true, params: { ReduceMotion: { value: false, hint: "a plain fade instead of the shape" } } },
+  },
+  variants: { a: {}, b: {}, c: {} },
+  draw(ctx, v, s) {
+    Demo.draw(ctx);
+    const l = v.LevelClear, k = v["theme: LevelClear"], loop = l.CloseSeconds + l.HoldSeconds + 0.6;
+    const t = s.t % loop, p = ease[l.Easing](Math.min(1, t / l.CloseSeconds));
+    const [hx, hy] = Demo.hero;
+    ctx.fillStyle = k.cover;
+    if (v.Preview.ReduceMotion) { ctx.globalAlpha = p; ctx.fillRect(0, 0, 1920, 1080); ctx.globalAlpha = 1; }
+    else if (s.variant === "a") {
+      ctx.beginPath(); ctx.rect(0, 0, 1920, 1080); ctx.arc(hx, hy, Math.max(0, (1 - p) * 2200), 0, Math.PI * 2, true); ctx.fill("evenodd");
+    } else if (s.variant === "b") {
+      const edge = -600 + p * 3200;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(edge, 0); ctx.lineTo(edge - 600, 1080); ctx.lineTo(0, 1080); ctx.fill();
+    } else {
+      const b = l.BlockSize;
+      for (let y = 0; y < 1080; y += b) for (let x = 0; x < 1920; x += b) {
+        const order = ((x * 73 + y * 151) % 997) / 997;
+        if (order < p) ctx.fillRect(x, y, b, b);
+      }
+    }
+    if (t > l.CloseSeconds) {
+      const q = Math.min(1, (t - l.CloseSeconds) / 0.25), drop = v.Preview.ReduceMotion ? 0 : (1 - q) * -80;
+      ctx.globalAlpha = q; ctx.font = `bold ${l.BannerSize}px ${FONT}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = k.shadow; ctx.fillText("STAGE CLEAR", 960 + 6, 540 + drop + 6);
+      ctx.fillStyle = k.banner; ctx.fillText("STAGE CLEAR", 960, 540 + drop);
+      ctx.globalAlpha = 1; ctx.textAlign = "left";
+    }
+  },
+});
+</script>
+</body>
+</html>

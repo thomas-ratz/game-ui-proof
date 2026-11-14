@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FEATURE</title>
+<link rel="stylesheet" href="../kit/kit.css">
+</head>
+<body>
+<script src="../kit/kit.js"></script>
+<script>
+// TEMPLATE: a health bar over a game screenshot. Replace the groups and draw() with the feature's.
+// Group names are where each value lives in the engine (a script's exports, a theme type, a shader's uniforms);
+// keys are the property names the build will use. A group with preview: true only drives the page.
+// `section` folds a long group into sub-lists in the panel; it isn't part of the key and never reaches values.json.
+const ROOT = "../../../"; // from <mockups>/<feature>/ to the project root, for the game's own art
+
+function healthAt(state, t) {
+  if (state === "full") return 1;
+  if (state === "low") return 0.2;
+  return 1 - Math.min(0.8, Math.floor((t % 4) / 0.8) * 0.2); // "hurt": a hit every 0.8 s, then back to full
+}
+
+Kit.start({
+  feature: "FEATURE",
+  // fonts: ['16px "Body Font"'],  // wait for the game's fonts (@font-face in ../kit/project.css); quote family names
+  images: {
+    // backdrop: "img/backdrop.png",            // a real game screenshot of this spot, UI hidden
+    // icon: ROOT + "path/to/real_icon.png",     // real art from the project
+  },
+  groups: {
+    HealthBar: { note: "the health bar script's properties", params: {
+      X: { value: 32, min: 0, max: 400, step: 4, unit: "px", section: "Position" },
+      Y: { value: 32, min: 0, max: 400, step: 4, unit: "px", section: "Position" },
+      Segments: { value: 5, min: 3, max: 10, step: 1, section: "Segments" },
+      SegmentWidth: { value: 24, min: 8, max: 64, step: 4, unit: "px", section: "Segments" },
+      SegmentHeight: { value: 16, min: 8, max: 48, step: 4, unit: "px", section: "Segments" },
+      Gap: { value: 4, min: 0, max: 16, step: 2, unit: "px", section: "Segments" },
+      Style: { value: "flat", options: ["flat", "bevel"], section: "Segments" },
+      PulseSeconds: { value: 0.6, min: 0.2, max: 2, step: 0.05, unit: "s", hint: "the low-health pulse", section: "Low health" },
+    } },
+    "theme: HealthBar": { note: "theme colours", params: {
+      fill: { value: "#e4e4e7ff" }, empty: { value: "#3f3f46ff" }, outline: { value: "#18181bff" }, warning: { value: "#ef4444ff" },
+    } },
+    Preview: { preview: true, params: {
+      ReduceFlashing: { value: false, hint: "a steady warning colour instead of the pulse" },
+    } },
+  },
+  variants: { a: {}, b: { "HealthBar.Segments": 8, "HealthBar.SegmentWidth": 16 } },
+  draw(ctx, v, s) {
+    if (s.images.backdrop) ctx.drawImage(s.images.backdrop, 0, 0);
+    else { ctx.fillStyle = "#52525b"; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height); }
+    const b = v.HealthBar, k = v["theme: HealthBar"], hp = healthAt(s.state, s.t);
+    const lit = Math.round(hp * b.Segments), low = hp <= 0.25;
+    const pulse = low && !v.Preview.ReduceFlashing ? 0.5 + 0.5 * Math.sin(s.t * Math.PI * 2 / b.PulseSeconds) : low ? 1 : 0;
+    for (let i = 0; i < b.Segments; i++) {
+      const x = b.X + i * (b.SegmentWidth + b.Gap);
+      ctx.fillStyle = k.outline; ctx.fillRect(x - 4, b.Y - 4, b.SegmentWidth + 8, b.SegmentHeight + 8);
+      ctx.fillStyle = i < lit ? (pulse > 0.5 ? k.warning : k.fill) : k.empty;
+      ctx.fillRect(x, b.Y, b.SegmentWidth, b.SegmentHeight);
+      if (b.Style === "bevel" && i < lit) { ctx.fillStyle = "#ffffff55"; ctx.fillRect(x, b.Y, b.SegmentWidth, 4); }
+    }
+  },
+});
+</script>
+</body>
+</html>

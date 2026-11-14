@@ -1,0 +1,15 @@
+{
+  "title": "Platformer HUD",
+  "stage": [1920, 1080],
+  "states": [
+    { "id": "explore", "caption": "Running through the level: a coin every 2 s, energy refilling.", "shotTime": 0.3 },
+    { "id": "hurt", "caption": "A hit every second from full health: a cell breaks, the panel shakes.", "shotTime": 1.2 },
+    { "id": "low", "caption": "Last cell: it pulses.", "shotTime": 0.2 },
+    { "id": "ability", "caption": "Dash used: the slot recharges.", "shotTime": 0.8 }
+  ],
+  "variants": {
+    "a": { "name": "Panel", "note": "Health cells, coins and energy grouped on one panel, top left; the ability slot bottom right." },
+    "b": { "name": "Minimal", "note": "No panel: bigger cells straight on the screen, a thin energy bar under them." }
+  },
+  "recommend": { "variant": "a", "why": "The panel keeps the HUD readable over busy backgrounds." }
+}

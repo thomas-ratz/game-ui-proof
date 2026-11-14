@@ -1,0 +1,136 @@
+/* Shared look for every UI preview: the stage on the left, the tuning panel on the right.
+   Needs no edits per project: fonts and palette (--display, --bg, --panel, --panel-deep, --border, --text, --dim,
+   --accent) live in project.css. */
+@import url("project.css");
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.4 system-ui, sans-serif;
+  display: flex;
+  overflow: hidden;
+}
+
+#stage-area { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#bar {
+  display: flex; gap: 12px; align-items: center;
+  padding: 8px 12px; border-bottom: 2px solid var(--border); background: var(--panel);
+}
+#bar h1 { margin: 0; font: 16px var(--display); color: var(--accent); letter-spacing: 1px; }
+#bar .state { font-weight: 600; }
+#bar .caption { color: var(--dim); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#bar .tools { display: flex; gap: 4px; flex: none; }
+#stage-wrap { flex: 1; min-height: 0; position: relative; }
+#stage-scroll { position: absolute; inset: 0; overflow: hidden; }
+#stage-scroll.zoomed { overflow: auto; }
+#stage, #highlight {
+  position: absolute; left: 0; top: 0;
+  transform-origin: 0 0; image-rendering: pixelated; box-shadow: 0 0 0 2px var(--border);
+}
+#stage { cursor: crosshair; }
+
+#panel {
+  width: 380px; flex: none; position: relative; display: flex; flex-direction: column;
+  background: var(--panel); border-left: 2px solid var(--border);
+}
+#panel-body { flex: 1; min-height: 0; overflow-y: auto; padding: 0 12px 16px; }
+#panel-foot { flex: none; padding: 10px 12px 8px; border-top: 2px solid var(--border); background: var(--panel); }
+#panel.collapsed { width: 28px; }
+#panel.collapsed > :not(#collapse) { display: none; }
+#collapse {
+  position: absolute; top: 8px; right: 14px; z-index: 1;
+  background: var(--panel-deep); color: var(--text); border: 1px solid var(--border); cursor: pointer; padding: 0 6px;
+}
+#panel.collapsed #collapse { right: 2px; }
+#panel h2 { font: 13px var(--display); color: var(--accent); margin: 18px 0 6px; letter-spacing: 1px; }
+#panel h2 small { color: var(--dim); font: 11px system-ui, sans-serif; letter-spacing: 0; margin-left: 6px; }
+#panel .note { color: var(--dim); margin: 4px 0; }
+#panel .recommend { border-left: 3px solid var(--accent); padding: 4px 8px; margin: 8px 0; background: var(--panel-deep); }
+
+.variants, .states { display: flex; flex-wrap: wrap; gap: 4px; }
+.variants button, .actions button, .states button, #bar .tools button {
+  background: var(--panel-deep); color: var(--text); border: 2px solid var(--border);
+  padding: 4px 8px; cursor: pointer; font: inherit;
+}
+#bar .tools button { padding: 2px 8px; user-select: none; }
+.variants button.on, .states button.on, #bar .tools button.on { border-color: var(--accent); color: var(--accent); }
+.actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.actions button.primary { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+/* Groups and sections: native <details>, folded with a click on the heading. */
+#controls summary {
+  display: flex; align-items: baseline; gap: 6px; cursor: pointer; list-style: none;
+  padding: 6px 4px; margin: 0 -4px; border-radius: 3px;
+}
+#controls summary::-webkit-details-marker { display: none; }
+#controls summary::before { content: "▸"; color: var(--dim); width: 10px; flex: none; transition: transform 0.1s; }
+#controls details[open] > summary::before { transform: rotate(90deg); }
+#controls summary:hover { background: var(--panel-deep); }
+#controls summary small {
+  flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--dim); font: 11px system-ui, sans-serif;
+}
+#controls summary .badge { flex: none; color: var(--accent); font: 11px system-ui, sans-serif; }
+#controls details.group { border-top: 1px solid var(--border); }
+#controls details.group > summary .name { font: 13px var(--display); color: var(--accent); letter-spacing: 1px; }
+#controls details.group.preview > summary .name { color: var(--dim); }
+#controls details.group[open] { padding-bottom: 8px; }
+#controls details.section { margin-left: 6px; padding-left: 8px; border-left: 1px solid var(--border); }
+#controls details.section > summary { padding: 3px 4px; }
+#controls details.section > summary .name { font-weight: 600; }
+
+/* A value: name | control | number or readout | revert. */
+.row {
+  display: grid; grid-template-columns: minmax(0, 1fr) 118px 66px 16px; gap: 6px; align-items: center;
+  padding: 2px 4px; margin: 0 -4px; border-radius: 3px;
+}
+.row:hover { background: var(--panel-deep); }
+.row label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row input[type=range] { width: 100%; margin: 0; accent-color: var(--accent); }
+.row select, .row input[type=color] { width: 100%; background: var(--panel-deep); color: var(--text); border: 1px solid var(--border); }
+.row input[type=color] { height: 20px; padding: 0 1px; cursor: pointer; }
+.row input[type=checkbox] { justify-self: start; margin: 0; accent-color: var(--accent); }
+.row .colour { display: flex; gap: 4px; align-items: center; }
+.row .colour input[type=color] { width: 44px; flex: none; }
+.row .colour input[type=range] { flex: 1; min-width: 0; }
+.row .value {
+  display: flex; align-items: center; justify-content: flex-end; gap: 3px;
+  color: var(--dim); font-variant-numeric: tabular-nums;
+}
+.row .value small { width: 16px; font-size: 10px; text-align: left; }
+.row .num {
+  width: 46px; padding: 1px 3px; text-align: right; font: inherit; font-variant-numeric: tabular-nums;
+  background: var(--panel-deep); color: var(--text); border: 1px solid var(--border); border-radius: 2px;
+  -moz-appearance: textfield; appearance: textfield;
+}
+.row .num::-webkit-inner-spin-button, .row .num::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.row .num:focus { outline: 1px solid var(--accent); }
+.row.changed label { color: var(--accent); }
+.row .revert { visibility: hidden; background: none; border: none; color: var(--accent); cursor: pointer; padding: 0; font-size: 15px; }
+.row.changed .revert { visibility: visible; }
+.row.found { outline: 1px solid var(--accent); background: var(--panel-deep); }
+#save-status { font-size: 12px; margin: 6px 0 0; }
+#save-status.live { color: var(--text); }
+
+/* The hover highlight over the stage (kit.js draws it). */
+#highlight { image-rendering: auto; box-shadow: none; pointer-events: none; }
+.stage-note {
+  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); pointer-events: none;
+  background: var(--panel); border: 1px solid var(--border); color: var(--dim); padding: 4px 10px; font-size: 12px;
+}
+#compare-note { color: var(--text); border-color: var(--accent); }
+
+#toast {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+  background: var(--panel); border: 2px solid var(--accent); padding: 8px 14px; display: none;
+}
+
+#kit-error {
+  position: absolute; left: 0; top: 0; margin: 0; padding: 48px; overflow: hidden;
+  background: var(--bg); color: var(--accent); font: 40px/1.4 ui-monospace, monospace; white-space: pre-wrap;
+}
+
+/* Screenshot mode: just the stage, at its real size. */
+body.shot #bar, body.shot #panel { display: none; }
+body.shot #stage { box-shadow: none; transform: none !important; }

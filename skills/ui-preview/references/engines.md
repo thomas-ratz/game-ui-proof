@@ -1,0 +1,35 @@
+# Engine notes
+
+Where the tuned values go and how to take the backdrop screenshots, per engine. The preview itself is the same everywhere.
+
+## Godot 4
+
+- **Values:** colours, fonts, font sizes, StyleBoxes → a theme type variation in the project Theme (`theme_type_variation` on the node), not per-node `theme_override_*`. Custom-drawn UI (`_Draw`) reads them with `GetThemeColor(name, "Type")` / `get_theme_color`. Sizes, durations, easings → `[Export]` / `@export` properties grouped with `[ExportGroup]` / `@export_group` under the JSON group's name; shader values → uniforms set from those exports.
+- **Theme in the preview:** `godot_theme.js` (global `GodotTheme`, load it after `kit.js`) parses the theme `.tres` named by `gui/theme/custom` in `project.godot` (or `configure({ theme })`). Working example: `assets/godot/` (page + `project.js`).
+  - `GodotTheme.configure({ root, theme, fonts, defaultFont, glyphs, cap, capInk, capLetter })` once, in the kit's `project.js`. `fonts` maps the theme's font paths (`res://…ttf`) to `@font-face` families in `project.css`; `glyphs` maps device → action → key text, `["face", "A"]` or `["pill", "LB"]`.
+  - `await GodotTheme.load()` before `Kit.start`; spread `...GodotTheme.themeGroups(["Type", "StyleBoxId"])` into `groups`; call `GodotTheme.use(v)` first thing in `draw` so tuning reaches the lookups.
+  - Drawing: `color(type, name)`, `font(type)`, `fontSize(type)`, `style(type, name = "panel")`, `styleBox(id)`, `panel(ctx, box | id | type, x, y, w, h)`, `text(ctx, s, x, y, { type, size, font, color, valign, align })` (Label metrics), `width`, `wrap`, `paragraph`, `lineHeight`, `dim(ctx, id)`, `image`, `cap`, `drawCap`, `hints`.
+  - Groups: a theme type gives its colours, constants, `font_size` and `<style>/<prop>` keys for each StyleBoxFlat sub-resource it uses (`panel/bg_color`; external StyleBox `.tres` files are drawn but not in the panel); `border_width` and `corner_radius` are one value for all sides, and the applier writes them to all four; a StyleBox id gives the properties its `.tres` writes.
+  - Not drawn like Godot: StyleBoxFlat skew, `border_blend`, `anti_aliasing = false`, `corner_detail` 2–7 (drawn smooth), StyleBoxTexture `modulate_color`, StyleBoxLine, FontVariation settings.
+- **Writing back:** `apply_godot.py <feature> [--theme path] [--write]`: theme entries and StyleBoxFlat/Texture sub-resources in the theme `.tres`; C# `[Export]` (any access level, `init`) and GDScript `@export` defaults in `<Group>.cs` / `<group>.gd`. Names that aren't plain identifiers are rejected. Expressions and unknown named colours are listed to do by hand; external StyleBox `.tres` files are not written; `.tscn` overrides of changed properties are listed to check.
+- **Screenshots:** copy `assets/godot/game_shots.gd` next to the preview, set its `LEVEL` and `UI_NODE`, and run it windowed at the project's viewport size: `godot --path . --resolution <w>x<h> --script docs/mockups/<feature>/game_shots.gd -- <out dir> [res://level.tscn]`. Point `user://` at a temp folder (APPDATA on Windows, XDG_DATA_HOME on Linux) so the run can't touch real saves.
+- `stretch/mode = canvas_items` means the stage is the viewport size in project settings; use that as the manifest's `stage`.
+
+## Unity
+
+- **Values:** `[SerializeField]` fields grouped with `[Header("Group")]`, or a ScriptableObject for values several prefabs share; UI Toolkit: USS variables for colours and sizes.
+- **Values in the preview:** `unity_theme.js` (load after `kit.js`; example page `assets/unity/`) reads the project's own files. `await UnityTheme.loadUss("Assets/UI/Theme.uss")` takes its custom properties (`--name: value;`, any rule, first declaration wins); `await UnityTheme.loadAsset("Assets/UI/HudStyle.asset")` takes a ScriptableObject's serialized fields (a `.prefab` too: `{ guid }` picks the MonoBehaviour whose script has that guid). `UnityTheme.groups()` gives the panel `"uss: <stem>"` (keys keep their `--`) and `"asset: <m_Name>"` (nested fields as `parent/child`); call `UnityTheme.use(v)` in `draw` and read with `UnityTheme.get("--accent")` / `get("cornerRadius")`. A variable that is only `var(--other)` stays out of the panel and follows its target. USS `px`, `%`, `s`, `ms`, `deg` values become sliders with that unit. Unity saves bools as 0/1: a field named `is…`, `has…`, `use…`, `show…`, `enable…` becomes a checkbox (true/false in the JSON; write back 1/0); other 0/1 fields stay sliders. Unity's own header fields are hidden; your `m_` fields are kept. Paths are from the project root (`configure({ root })`, default `../../../`).
+- **Writing back:** `python docs/mockups/kit/apply_uss.py <feature>` prints, per `.uss`, each `--key: old -> new` from the `uss:` groups of `values.json`, and unmatched keys; `--write` applies. Serialized fields (`asset:` groups) are set by hand or by an editor script.
+- **Screenshots:** an editor or play-mode script that loads the scene, disables the UI canvas, and calls `ScreenCapture.CaptureScreenshot(path)` at the reference resolution (set it in the Game view or with `-screen-width/-screen-height` in a batch build).
+- Fonts: declare the TMP source fonts' `.ttf` with `@font-face` in `project.css`.
+
+## Unreal
+
+- **Values:** `UPROPERTY(EditAnywhere, Category = "Group")` on the widget's C++ class, or Blueprint variables in a category named after the JSON group; colours in a shared style asset.
+- **Values in the preview** (example page `assets/unreal/`; load `unreal_theme.js` after `kit.js`): a `.uasset` is binary, so keep the values in a DataTable and export it (Export as JSON or CSV) under the project. `unreal_theme.js`: `await UnrealTheme.loadTable("Content/UI/DT_HudStyle.json")` (or `.csv`), `UnrealTheme.groups()` gives one `"table: <stem>/<RowName>"` group per row (nested structs as `Parent/Child`), `UnrealTheme.use(v)` in `draw`, `UnrealTheme.get("Default", "CornerRadius")`. Colours come out as sRGB `#rrggbbaa`: FLinearColor is linear and gets the sRGB curve, FColor (0–255) is taken as is. A colour counts as FColor only when every channel is a whole number and one is above 1; HDR FLinearColor channels above 1 are clamped in the panel (tuning saves the clamped value). To apply, write the tuned values into the exported JSON (FLinearColor back through the inverse curve) and re-import it over the DataTable; there is no apply script.
+- **Screenshots:** `HighResShot <w>x<h> (the game's resolution)` with the HUD hidden (`ShowFlag.HUD 0`, or remove the widget), from a console command or automation test.
+
+## Web / other
+
+- **Values:** CSS custom properties for colours and sizes, a config object for timings. The preview can often be the real component on a stage.
+- **Screenshots:** the running page at the target size (Playwright or headless Chrome).

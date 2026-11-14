@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+docs/mockups/*/shots/
+docs/mockups/*/values.draft.json
+# Generated: python examples/setup.py
+examples/*/docs/mockups/
+# Built by the Pages workflow
+_site/
+.claude/settings.local.json

@@ -1,0 +1,14 @@
+{
+  "title": "FEATURE",
+  "stage": [1920, 1080],
+  "states": [
+    { "id": "full", "caption": "Full health.", "shotTime": 0 },
+    { "id": "hurt", "caption": "Taking a hit every 0.8 s (loops).", "shotTime": 1.0 },
+    { "id": "low", "caption": "Last segment: it pulses.", "shotTime": 0.15 }
+  ],
+  "variants": {
+    "a": { "name": "Five cells", "note": "One cell per hit, five hits to die." },
+    "b": { "name": "Eight cells", "note": "Thinner cells for finer damage." }
+  },
+  "recommend": { "variant": "a", "why": "Fewer, bigger cells read at a glance." }
+}

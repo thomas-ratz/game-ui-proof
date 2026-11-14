@@ -1,0 +1,9 @@
+/* A fake Unity project's UI Toolkit theme for the ui-preview example page: UnityTheme reads it, apply_uss.py writes it. */
+:root {
+    --color-panel: rgba(20, 22, 31, 0.92);
+    --color-text: #f5f7fa;
+    --color-accent: #4fd1c5;
+    --font-size-title: 32px;
+    --panel-padding: 16px;
+    --panel-radius: 12px;
+}

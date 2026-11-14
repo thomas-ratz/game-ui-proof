@@ -1,0 +1,14 @@
+/* Your project's fonts and palette: the only kit file to edit per project (kit.css imports it).
+   Add @font-face rules for the game's fonts so previews draw text with them; paths are from this folder:
+@font-face { font-family: "Body Font"; src: url("../../../path/to/body.ttf"); }
+   Pages then wait for them with Kit.start({ fonts: ['16px "Body Font"'] }). */
+:root {
+  --display: ui-monospace, monospace; /* the panel's headings, e.g. "Body Font", monospace */
+  --bg: #18181b;
+  --panel: #232326;
+  --panel-deep: #18181b;
+  --border: #4a4a52;
+  --text: #e4e4e7;
+  --dim: #a1a1aa;
+  --accent: #5eaeff;
+}

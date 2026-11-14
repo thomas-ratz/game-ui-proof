@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    # Pinned: Python 3.8 (the oldest the kit supports) has no builds for newer runner images.
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.8", "3.13"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: serve.py security rules
+        run: python skills/ui-preview/assets/kit/test_serve.py
+
+      - name: Python compiles
+        run: python -m compileall -q .
+
+      - name: JavaScript parses
+        run: find . -name '*.js' -not -path './.git/*' -print0 | xargs -0 -n1 node --check
+
+      - name: Render the example pages in the sample projects
+        run: |
+          pip install "pillow>=10.1"
+          python examples/setup.py
+          (cd examples/godot && python docs/mockups/kit/shots.py confirm_dialog && python docs/mockups/kit/shots.py health_bar)
+          (cd examples/unity && python docs/mockups/kit/shots.py hud_panel)
+          (cd examples/unreal && python docs/mockups/kit/shots.py hud_panel)
+
+      - name: Appliers find the samples' values (dry run)
+        run: |
+          cd examples/godot
+          echo '{"variant": "a", "values": {"ConfirmDialog": {"Width": 640}, "theme: Label": {"font_size": 28}}}' > docs/mockups/confirm_dialog/values.json
+          python docs/mockups/kit/apply_godot.py confirm_dialog | tee out.txt
+          grep -q "Width: 480 → 640" out.txt && grep -q "font_size: 24 → 28" out.txt
+          cd ../unity
+          echo '{"variant": "a", "values": {"uss: Theme": {"--panel-radius": 4}}}' > docs/mockups/hud_panel/values.json
+          python docs/mockups/kit/apply_uss.py hud_panel | tee out.txt
+          grep -q -- "--panel-radius: 12px -> 4px" out.txt
+
+      - name: Upload the sheets
+        if: always() && matrix.python == '3.13'
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-sheets
+          path: examples/*/docs/mockups/*/sheet.png
