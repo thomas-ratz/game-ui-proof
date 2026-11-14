@@ -3,7 +3,7 @@
   "stage": [1920, 1080],
   "states": [
     { "id": "closed", "caption": "The game before the dialog opens.", "shotTime": 0 },
-    { "id": "opening", "caption": "Sliding in (mid-animation).", "shotTime": 0.1 },
+    { "id": "opening", "caption": "Sliding in (mid-animation).", "shotTime": 0.04 },
     { "id": "open", "caption": "Open, waiting for an answer.", "shotTime": 0 }
   ],
   "variants": {

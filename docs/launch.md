@@ -14,11 +14,11 @@ Rules change; re-read each venue's rules on the day you post. Notes here are as 
 
 - [x] Repo public, `main` pushed, description and topics set (`claude-code`, `claude-code-plugin`, `agent-skills`, `game-ui`, `godot`, `unity`, `unreal`, `gamedev`).
 - [x] Settings > Pages > Source: GitHub Actions; the Pages workflow has run and the demo URL loads.
-- [ ] CI green on `main` (both Python versions); download the `example-sheets` artifact once and look at it.
+- [x] CI green on `main` (both Python versions); download the `example-sheets` artifact once and look at it.
 - [x] Tag and release `v1.0.0` matching `.claude-plugin/plugin.json`; move the CHANGELOG entry out of "unreleased".
 - [ ] Install from GitHub on a clean machine (or a fresh user profile) with the two commands above, and run one preview.
 - [ ] The README's open TODO: a clip of a game running with applied values (optional, but it's the strongest proof).
-- [ ] Social preview image (Settings > General): upload `docs/demo/social.png`.
+- [x] Social preview image (Settings > General): upload `docs/demo/social.png`.
 
 ## awesome-claude-code
 
