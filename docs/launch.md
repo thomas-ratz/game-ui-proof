@@ -5,14 +5,14 @@ Drafts and a checklist for announcing game-ui-proof. Links used throughout:
 - Repo: https://github.com/thomas-ratz/game-ui-proof
 - Live demo: https://thomas-ratz.github.io/game-ui-proof/
 - Install: `/plugin marketplace add thomas-ratz/game-ui-proof` then `/plugin install game-ui-proof@game-ui-proof`
-- Video: `docs/demo/demo.mp4` (32 s, 1600×900), `docs/demo/demo.gif`
+- Video: `docs/demo/demo.mp4` (38 s, 1600×900), `docs/demo/demo.gif`
 
 Rules change; re-read each venue's rules on the day you post. Notes here are as of 2026-11-14.
 
 ## Before any of it
 
-- [ ] Repo public, `main` pushed, description and topics set (`claude-code`, `claude-code-plugin`, `agent-skills`, `game-ui`, `godot`, `unity`, `unreal`, `gamedev`).
-- [ ] Settings > Pages > Source: GitHub Actions; the Pages workflow has run and the demo URL loads.
+- [x] Repo public, `main` pushed, description and topics set (`claude-code`, `claude-code-plugin`, `agent-skills`, `game-ui`, `godot`, `unity`, `unreal`, `gamedev`).
+- [x] Settings > Pages > Source: GitHub Actions; the Pages workflow has run and the demo URL loads.
 - [ ] CI green on `main` (both Python versions); download the `example-sheets` artifact once and look at it.
 - [x] Tag and release `v1.0.0` matching `.claude-plugin/plugin.json`; move the CHANGELOG entry out of "unreleased".
 - [ ] Install from GitHub on a clean machine (or a fresh user profile) with the two commands above, and run one preview.
@@ -87,6 +87,6 @@ For r/aigamedev, start with the game angle instead: drop "a Claude Code plugin" 
 | r/ClaudeAI | Not required | None | Yes | GIF/MP4 in the post | Flair; AI disclosure first; read the self-promotion rule |
 | r/aigamedev | Not required | None | Yes | GIF/MP4 in the post | Game angle first; disclosure |
 | awesome-gamedev-agent-skills | Yes | Check their rubric | Helps | Helps | PR against their rubric |
-| X / Bluesky | — | — | Yes | The 32 s MP4 (fits both) | Alt text on the video |
+| X / Bluesky | — | — | Yes | The 38 s MP4 (fits both) | Alt text on the video |
 
 Skip r/godot and r/gamedev for the launch. The audit found those communities openly hostile to AI tools. If someone else posts it there, answer questions; don't push.
