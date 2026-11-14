@@ -1,5 +1,7 @@
 # game-ui-proof
 
+**Does this sound like you?** You have your agent create some UI for you. It creates something. You don't like it. "Change this" you say, "not like this, i meant like this!" you say, "make this bigger, smaller, BETTER". 3 hours later and millions of tokens later, you have something that slightly resembles what you wanted. If that does sound like you, then boy do I have some good news for you.
+
 **Tune your game's UI in the browser before your AI agent builds it.** The agent draws the proposal over a real screenshot of your game at its real resolution, with a panel of sliders and colour pickers. You tune it and press Save. The `values.json` it writes is the spec, and a script applies it to your engine.
 
 A [Claude Code](https://code.claude.com) plugin for game developers (one skill, `ui-preview`). Works with any engine; reads and writes Godot and Unity files, reads Unreal DataTables.
