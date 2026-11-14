@@ -6,6 +6,7 @@ Drafts and a checklist for announcing game-ui-proof. Links used throughout:
 - Live demo: https://thomas-ratz.github.io/game-ui-proof/
 - Install: `/plugin marketplace add thomas-ratz/game-ui-proof` then `/plugin install game-ui-proof@game-ui-proof`
 - Video: `docs/demo/demo.mp4` (38 s, 1600×900), `docs/demo/demo.gif`
+- Social preview: `docs/demo/social.png` (1280×640); upload it in Settings > General > Social preview.
 
 Rules change; re-read each venue's rules on the day you post. Notes here are as of 2026-11-14.
 
@@ -17,7 +18,7 @@ Rules change; re-read each venue's rules on the day you post. Notes here are as 
 - [x] Tag and release `v1.0.0` matching `.claude-plugin/plugin.json`; move the CHANGELOG entry out of "unreleased".
 - [ ] Install from GitHub on a clean machine (or a fresh user profile) with the two commands above, and run one preview.
 - [ ] The README's open TODO: a clip of a game running with applied values (optional, but it's the strongest proof).
-- [ ] Social preview image (Settings > General): a frame from the tour.
+- [ ] Social preview image (Settings > General): upload `docs/demo/social.png`.
 
 ## awesome-claude-code
 
