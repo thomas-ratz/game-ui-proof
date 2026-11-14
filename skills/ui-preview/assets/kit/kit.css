@@ -44,6 +44,13 @@ body {
   background: var(--panel-deep); color: var(--text); border: 1px solid var(--border); cursor: pointer; padding: 0 6px;
 }
 #panel.collapsed #collapse { right: 2px; }
+/* Narrow screens (a phone): the stage on top, the panel under it. */
+@media (max-width: 760px) {
+  body { flex-direction: column; }
+  #stage-area { flex: 9 1 0; }
+  #panel { width: auto; flex: 11 1 0; min-height: 0; border-left: none; border-top: 2px solid var(--border); }
+  #panel.collapsed { width: auto; flex: none; height: 32px; }
+}
 #panel h2 { font: 13px var(--display); color: var(--accent); margin: 18px 0 6px; letter-spacing: 1px; }
 #panel h2 small { color: var(--dim); font: 11px system-ui, sans-serif; letter-spacing: 0; margin-left: 6px; }
 #panel .note { color: var(--dim); margin: 4px 0; }
