@@ -17,8 +17,11 @@ Where each group of values.json goes:
                     font_size -> X/font_sizes/font_size, other numbers -> X/constants/<key>,
                     and "<style>/<property>" -> that property of the StyleBox sub_resource
                     X/styles/<style> points at.
-  "*.gdshader", "uniforms"
-                    skipped and listed: uniforms are fed from exports at runtime.
+  "X.gdshader"      the one X.gdshader in the project: each key is a uniform whose default
+                    is rewritten (colours as vec4 / vec3 floats, by the uniform's type).
+                    .tscn / .tres that set shader_parameter/<key> for a changed uniform are
+                    listed to check. A name matching no file or several is listed, not guessed.
+  "...uniforms"     skipped and listed: uniforms set from code at runtime.
   anything else     a script class: the default of each [Export] property or field in
                     <Group>.cs, else of each @export var <snake_key> in <snake_group>.gd.
 
@@ -62,6 +65,9 @@ GD_EXPORT = r"@export(?!_group|_subgroup|_category)\w*"
 GD_EXPORT_LINE = re.compile(rf"\s*{GD_EXPORT}(?:\([^)]*\))?\s*")  # an @export alone on the line above a var
 PROP = re.compile(r"^([^\s=\[][^=]*?) = (.*)$")
 STRING = r'"(?:[^"\\]|\\.)*"'
+UNIFORM = re.compile(r"\s*(?:instance\s+)?uniform\s+(?:(?:lowp|mediump|highp)\s+)?(?P<type>\w+)\s+(?P<name>\w+)\s*"
+                     r"(?::[^=;]*)?(?:=\s*(?P<val>[^;]*?)\s*)?;")
+NUMBER = r"[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?"
 
 
 # ---- values -------------------------------------------------------------------------------
@@ -206,7 +212,7 @@ class Report:
             print(note)
         check = ("scene overrides to check: " + "; ".join(overrides) + ". ") if overrides else ""
         print(f"\n{totals['changes']} changes, {totals['same']} unchanged, {totals['missing']} not found, "
-              f"{self.no_script} with no script, {self.rejected} rejected, "
+              f"{self.no_script} with no file, {self.rejected} rejected, "
               f"{totals['notes']} to do by hand. {check}" + ("Written." if write else "Dry run: --write applies."))
 
 
@@ -478,6 +484,77 @@ def apply_gd(doc, values, rep, path):
         rep.files[path]["props"].append(name)
 
 
+# ---- shaders --------------------------------------------------------------------------------
+
+def glsl_float(x):
+    text = gfloat(x)
+    return text if "." in text or "e" in text else text + ".0"
+
+
+def shader_value(utype, text):
+    """What a uniform's default stands for (colours as bytes), or None if it isn't a plain literal."""
+    m = re.fullmatch(r"vec([34])\s*\(([^()]*)\)", text)
+    if utype in ("vec3", "vec4") and m and utype.endswith(m.group(1)):
+        try:
+            ch = [float(c) for c in m.group(2).split(",")]
+        except ValueError:
+            return None
+        ch = ch * int(m.group(1)) if len(ch) == 1 else ch
+        return tuple(to_byte(c) for c in ch + [1.0] * (4 - len(ch))) if len(ch) == int(m.group(1)) else None
+    if utype == "bool":
+        return {"true": True, "false": False}.get(text)
+    if utype in ("float", "int", "uint") and re.fullmatch(NUMBER + "[uUfF]?", text):
+        return float(text.rstrip("uUfF"))
+    return None
+
+
+def shader_literal(utype, value):
+    rgba = parse_hex(value)
+    if rgba and utype in ("vec3", "vec4"):
+        return f"{utype}(" + ", ".join(glsl_float(b / 255) for b in rgba[:int(utype[-1])]) + ")"
+    if utype == "bool" and isinstance(value, bool):
+        return "true" if value else "false"
+    if utype == "float" and is_number(value):
+        return repr(float(value))
+    if utype in ("int", "uint") and is_number(value) and float(value).is_integer():
+        return str(int(value)) + ("u" if utype == "uint" else "")
+    return None
+
+
+def apply_shader(doc, values, rep, path):
+    uniforms = {}
+    for i, line in enumerate(doc.lines):
+        m = UNIFORM.match(line)
+        if m:
+            uniforms.setdefault(m.group("name"), (i, m))
+    notes = rep.files[path]["notes"]
+    for key, value in values.items():
+        if key not in uniforms:
+            rep.files[path]["missing"].append(key)
+            continue
+        i, m = uniforms[key]
+        utype, old = m.group("type"), m.group("val")
+        if old is None:
+            notes.append(f"{key}: no default in the shader, set it by hand to {value!r}")
+            continue
+        new = shader_literal(utype, value)
+        if new is None:
+            if value == old:  # shown in the preview as the shader reads (a vec2, an expression): untouched
+                rep.files[path]["same"] += 1
+            else:
+                notes.append(f"{key}: {value!r} doesn't fit {utype}, set it by hand")
+            continue
+        current, wanted = shader_value(utype, old), shader_value(utype, new)
+        if current is None:
+            notes.append(f"{key}: default {old} isn't a plain literal, set it by hand to {new}")
+        elif current == wanted if isinstance(current, (tuple, bool)) else abs(current - wanted) < 1e-6:
+            rep.files[path]["same"] += 1
+        else:
+            doc.lines[i], doc.dirty = doc.lines[i][:m.start("val")] + new + doc.lines[i][m.end("val"):], True
+            rep.change(path, key, old, new)
+            rep.files[path]["props"].append(f"shader_parameter/{key}")
+
+
 def walk(root, suffixes):
     found = defaultdict(list)
     for dirpath, dirs, files in os.walk(root):
@@ -490,7 +567,7 @@ def walk(root, suffixes):
 
 
 def scene_overrides(root, rep):
-    """Scenes and resources that use a changed script and set one of the changed properties: theirs wins in game."""
+    """Scenes and resources that use a changed script or shader and set one of the changed properties: theirs wins."""
     changed = {p: r["props"] for p, r in rep.files.items() if r["props"]}
     if not changed:
         return []
@@ -532,7 +609,7 @@ def main():
     print(f"{spec_path.as_posix()}: feature {spec.get('feature')!r}, variant {spec.get('variant')!r}\n")
     theme = args.theme or project_theme(root)
 
-    rep, docs, scripts = Report(), {}, None
+    rep, docs, files = Report(), {}, None
 
     def open_doc(p):
         key = Path(os.path.relpath(p, root)).as_posix()
@@ -561,19 +638,22 @@ def main():
                 continue
             path, doc = open_doc(theme)
             apply_theme(doc, name, values, rep, path)
-        elif group.endswith(".gdshader") or group.lower().endswith("uniforms"):
-            rep.notes.append(f"skipped {group!r} (shader uniforms, set from exports at runtime): {', '.join(map(repr, values))}")
-        elif valid(group, group, values):
-            scripts = scripts or walk(root, (".cs", ".gd"))
-            hits = scripts.get(f"{group}.cs") or scripts.get(f"{snake(group)}.gd") or []
+        elif group.lower().endswith("uniforms"):
+            rep.notes.append(f"skipped {group!r} (shader uniforms, set from code at runtime): {', '.join(map(repr, values))}")
+        elif valid(group, group[:-len(".gdshader")] if group.endswith(".gdshader") else group, values):
+            files = files or walk(root, (".cs", ".gd", ".gdshader"))
+            if group.endswith(".gdshader"):
+                hits = files.get(group, [])
+            else:
+                hits = files.get(f"{group}.cs") or files.get(f"{snake(group)}.gd") or []
             if len(hits) != 1:
                 where = ", ".join(Path(os.path.relpath(h, root)).as_posix() for h in hits)
                 rep.no_script += len(values)
-                rep.notes.append(f"{'several scripts for' if hits else 'no script for'} {group}"
+                rep.notes.append(f"{'several files for' if hits else 'no file for'} {group}"
                                  f"{': ' + where if hits else ''} (keys: {', '.join(values)})")
                 continue
             path, doc = open_doc(hits[0])
-            (apply_cs if hits[0].suffix == ".cs" else apply_gd)(doc, values, rep, path)
+            {".cs": apply_cs, ".gd": apply_gd, ".gdshader": apply_shader}[hits[0].suffix](doc, values, rep, path)
 
     rep.print(args.write, scene_overrides(root, rep))
     if args.write:

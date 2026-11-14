@@ -622,7 +622,7 @@ const Kit = (() => {
     checkVariants();
     await Promise.all([...(cfg.fonts || []).map(f => document.fonts.load(f)), ...[...document.fonts].map(f => f.load().catch(() => {}))]);
     if (!params.has("defaults"))
-      approved = await fetch("values.json", { cache: "no-store" }).then(r => (r.ok ? r.json() : null)).catch(() => null);
+      approved = await fetch("values.json", { cache: "no-store" }).then(r => (r.ok && r.status !== 204 ? r.json() : null)).catch(() => null);
     if (!shot) server = await fetch("/__preview", { cache: "no-store" }).then(r => r.ok).catch(() => false);
     if (!shot && !server && !approved && !params.has("defaults")) approved = recall("approved"); // Save without serve.py
     folds = recall("folds") || {};

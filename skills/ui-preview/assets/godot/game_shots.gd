@@ -28,14 +28,13 @@ func _initialize() -> void:
 
 
 func run() -> void:
-	if change_scene_to_file(level) != OK:
-		push_error("can't load " + level)
+	if not load_level():
 		quit(1)
 		return
 	await frames(SETTLE_FRAMES)
 	var ui := root.get_node_or_null(UI_NODE)
 	if ui == null:
-		ui = current_scene.find_child(UI_NODE, true, false)
+		ui = root.find_child(UI_NODE, true, false)
 	if ui == null:
 		push_warning("no node named %s: the clean shot shows the UI" % UI_NODE)
 	var base := level.get_file().get_basename()
@@ -48,6 +47,16 @@ func run() -> void:
 		await frames(2)
 		await shot(base + "_ui")
 	quit(0)
+
+
+# Games that load levels through their own service (and spawn the player there) replace this body, e.g.
+#   root.get_node("SceneService").Load(level, "")
+#   return true
+func load_level() -> bool:
+	if change_scene_to_file(level) != OK:
+		push_error("can't load " + level)
+		return false
+	return true
 
 
 func frames(n: int) -> void:

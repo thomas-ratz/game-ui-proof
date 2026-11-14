@@ -21,7 +21,7 @@ An open-source (MIT) Claude Code plugin with one skill, `ui-preview`: the agent 
 - Never commit or push unless asked.
 
 ## Checks before a release
-- `python skills/ui-preview/assets/kit/test_serve.py` (exit code = failed checks).
+- `python skills/ui-preview/assets/kit/test_serve.py` and `test_apply_godot.py` (exit code = failed checks).
 - `python -m py_compile` on every `.py`, `node --check` on every `.js`.
 - Render the example pages: `python examples/setup.py`, then `python docs/mockups/kit/shots.py <feature>` from each sample project (CI does this and uploads the sheets); look at each `sheet.png`.
 - Render the demo: `python docs/demo/build_site.py`, then look at `_site/`.

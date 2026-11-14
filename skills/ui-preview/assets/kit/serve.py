@@ -5,7 +5,8 @@
 
 A page's tuning panel saves every change to <feature>/values.draft.json (so the current tuning can be read at any
 time) and, on Save, writes <feature>/values.json (the approved spec). Only those two files, only directly inside
-<root>/<mockups>/<feature>/ where a manifest.json exists, only from pages this server served. Stdlib only.
+<root>/<mockups>/<feature>/ where a manifest.json exists, only from pages this server served. A GET for one of
+those two files that isn't saved yet answers 204 No Content; any other missing file is a 404. Stdlib only.
 """
 import argparse
 import functools
@@ -52,6 +53,11 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/__preview":
             return self.reply(200, {"ok": True})
+        target = Path(self.translate_path(self.path)).resolve()
+        if self.is_values_file(target) and not target.exists():
+            # Nothing saved yet: the page's boot fetch gets "no content" instead of a console 404.
+            self.send_response(204)
+            return self.end_headers()
         super().do_GET()
 
     def do_POST(self):
@@ -71,8 +77,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         try:
             body = json.loads(self.rfile.read(length))
             target = (self.root() / unquote(body["path"]).lstrip("/")).resolve()
-            if (target.name not in WRITABLE or target.parent.parent != self.root() / self.mockups
-                    or not (target.parent / "manifest.json").is_file()):
+            if not self.is_values_file(target):
                 return self.reply(403, {"error": f"not a preview values file: {body['path']}"})
             text = json.dumps(body["data"], indent=2, ensure_ascii=False) + "\n"
             with tempfile.NamedTemporaryFile("w", encoding="utf-8", dir=target.parent, suffix=".tmp", delete=False) as tmp:
@@ -85,6 +90,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.reply(200, {"saved": target.relative_to(self.root()).as_posix()})
         except (ValueError, KeyError, TypeError, AttributeError, OSError) as error:
             self.reply(400, {"error": str(error)})
+
+    def is_values_file(self, target):
+        return (target.name in WRITABLE and target.parent.parent == self.root() / self.mockups
+                and (target.parent / "manifest.json").is_file())
 
     def root(self):
         return Path(self.directory).resolve()

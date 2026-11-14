@@ -16,6 +16,10 @@
 //       cap: { height, padding, step, size }. capInk / capLetter: key cap face and letter colours.
 //   load() -> Promise          reads the theme, the StyleBox .tres files it points at and their textures.
 //   use(values)                call first in draw(): lookups then see the tuning panel's values.
+//   loadShader(resPath) -> Promise<groups>   a .gdshader's uniforms as one tuning-panel group named after the file
+//                              ("acid_gauge.gdshader"): source_color vec3/vec4 -> colour, hint_range -> that slider,
+//                              bool -> checkbox, other defaults -> Kit.spec. Uniforms with no default and samplers are left out.
+//   uniform(file, name)        a uniform's value (tuning applied), e.g. uniform("acid_gauge.gdshader", "fill_color").
 //   themeGroups(names)         tuning-panel groups "theme: <name>". <name> is a StyleBox sub-resource id (keys: its
 //                              bg_color, border_color, border_width, corner_radius) or a theme type (keys: its own
 //                              colours, constants, font_size, and "<style>/<property>" for each StyleBox it sets).
@@ -39,19 +43,18 @@ const GodotTheme = (() => {
   let THEME = null;
   let FONTS = {};
   let DEFAULT_FONT = "monospace";
-  const theme = { props: {}, subs: {}, exts: {}, textures: {} };
+  const theme = { props: {}, subs: {}, exts: {}, textures: {}, shaders: {} };
   let tuned = {};
 
   const SIDES = ["left", "top", "right", "bottom"];
   const CORNERS = ["top_left", "top_right", "bottom_right", "bottom_left"];
 
+  const toHex = c => "#" + c.map(x => Math.round(Math.min(1, Math.max(0, x)) * 255).toString(16).padStart(2, "0")).join("");
+
   function parseValue(raw) {
     raw = raw.trim();
     let m;
-    if ((m = raw.match(/^Color\(([^)]+)\)$/))) {
-      const c = m[1].split(",").map(Number);
-      return "#" + c.map(x => Math.round(Math.min(1, Math.max(0, x)) * 255).toString(16).padStart(2, "0")).join("");
-    }
+    if ((m = raw.match(/^Color\(([^)]+)\)$/))) return toHex(m[1].split(",").map(Number));
     if ((m = raw.match(/^(?:Vector2i?|Rect2i?)\(([^)]+)\)$/))) return m[1].split(",").map(Number);
     if ((m = raw.match(/^SubResource\("([^"]+)"\)$/))) return { sub: m[1] };
     if ((m = raw.match(/^ExtResource\("([^"]+)"\)$/))) return { ext: m[1] };
@@ -118,6 +121,32 @@ const GodotTheme = (() => {
       }
     }
   }
+
+  const UNIFORM = /^[ \t]*(?:instance\s+)?uniform\s+(?:(?:lowp|mediump|highp)\s+)?(\w+)\s+(\w+)\s*(?::([^=;]*))?(?:=([^;]*))?;/gm;
+  const NUMBER = /^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?[uf]?$/i;
+
+  async function loadShader(resPath) {
+    const file = resPath.split("/").pop(), params = {}, values = (theme.shaders[file] = {});
+    for (const [, type, name, hints = "", def] of (await fetchText(resPath)).matchAll(UNIFORM)) {
+      if (def === undefined || type.startsWith("sampler")) continue;
+      const v = def.trim(), vec = v.match(/^vec([34])\(([^()]*)\)$/), range = hints.match(/hint_range\(([^)]*)\)/);
+      let spec;
+      if (/\bsource_color\b/.test(hints) && vec && type === "vec" + vec[1]) {
+        let c = vec[2].split(",").map(Number);
+        if (c.length === 1) c = Array(Number(vec[1])).fill(c[0]);
+        spec = { value: toHex(c.length === 3 ? [...c, 1] : c) };
+      } else if (type === "bool" && (v === "true" || v === "false")) spec = { value: v === "true" };
+      else if (NUMBER.test(v) && range) {
+        const [min, max, step = type === "float" ? 0.01 : 1] = range[1].split(",").map(parseFloat);
+        spec = { value: parseFloat(v), min, max, step };
+      } else spec = Kit.spec(NUMBER.test(v) ? parseFloat(v) : v);
+      params[name] = spec;
+      values[name] = spec.value;
+    }
+    return { [file]: { note: "shader uniforms", params } };
+  }
+
+  function uniform(file, name) { return tuned[file]?.[name] ?? theme.shaders[file]?.[name]; }
 
   // Theme lookup along the base_type chain, the tuning panel first at each step.
   function raw(type, kind, name) {
@@ -418,7 +447,7 @@ const GodotTheme = (() => {
   }
 
   return {
-    configure, load, use, themeGroups, color, font, fontSize, style, styleBox, text, width, wrap, paragraph, lineHeight,
+    configure, load, loadShader, uniform, use, themeGroups, color, font, fontSize, style, styleBox, text, width, wrap, paragraph, lineHeight,
     panel, dim, image, cap, capWidth, drawCap, glyphWidth, hints, mixHex, theme,
     get GLYPHS() { return GLYPHS; },
     get CAP() { return CAP; },

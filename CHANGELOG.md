@@ -2,6 +2,12 @@
 
 All notable changes to game-ui-proof. Versions follow [semver](https://semver.org); the version lives in `.claude-plugin/plugin.json`.
 
+## 1.1.0 (2026-11-14)
+
+- Godot shader uniforms: `GodotTheme.loadShader(resPath)` reads a `.gdshader`'s uniforms as a tuning group named after the file (source_color vec3/vec4 colours, hint_range sliders, bools, other defaults), read in `draw` with `GodotTheme.uniform(file, name)`; `apply_godot.py` writes a `"<name>.gdshader"` group back into that shader's uniform defaults and lists `.tscn` / `.tres` that set `shader_parameter/<name>`. `test_apply_godot.py` checks it.
+- `serve.py` answers `204 No Content` for a `values.json` / `values.draft.json` not saved yet in a preview folder, so a page's first load logs no 404.
+- `game_shots.gd`: loading the level is its own `load_level()`, for games that load levels through a service of their own.
+
 ## 1.0.0 (2026-11-14)
 
 First public release.

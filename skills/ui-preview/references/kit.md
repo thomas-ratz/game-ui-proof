@@ -10,6 +10,7 @@
 | `serve.py` | Serves the project root and accepts saves | no |
 | `shots.py` | Review sheet | no |
 | `test_serve.py` | Regression check for `serve.py`'s security rules | no |
+| `test_apply_godot.py` | Regression check for `apply_godot.py`'s shader groups | no |
 | `godot_theme.js`, `apply_godot.py` | Godot reader and applier | no |
 | `unity_theme.js`, `apply_uss.py` | Unity reader and USS applier | no |
 | `unreal_theme.js` | Unreal DataTable reader | no |
@@ -63,6 +64,7 @@ Format: `{ "feature", "variant", "values": { Group: { Key: value } } }` (drafts 
 - Binds 127.0.0.1 only. Refuses any request whose `Host` isn't `localhost:<port>` / `127.0.0.1:<port>` (DNS rebinding), and any save whose `Origin` isn't this server or that isn't `application/json` (other websites can't write).
 - A save is `POST /__save` with `Content-Type: application/json` and the body `{ "path": "/<mockups>/<feature>/values.json", "data": { … } }` (the page's own URL path; `values.draft.json` for drafts).
 - Writes only `values.json` / `values.draft.json`, directly inside `<root>/<mockups>/<feature>/` where a `manifest.json` exists, atomically, at most 1 MB. No directory listings.
+- A GET for one of those two files that isn't saved yet answers `204 No Content` (no console 404 on a page's first load); any other missing file is a 404.
 - `python docs/mockups/kit/test_serve.py` checks all of that (exit code = failed checks).
 
 ## `shots.py`

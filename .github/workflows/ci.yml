@@ -24,6 +24,9 @@ jobs:
       - name: serve.py security rules
         run: python skills/ui-preview/assets/kit/test_serve.py
 
+      - name: apply_godot.py shader uniforms
+        run: python skills/ui-preview/assets/kit/test_apply_godot.py
+
       - name: Python compiles
         run: python -m compileall -q .
 

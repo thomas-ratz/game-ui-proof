@@ -51,7 +51,7 @@ Copy `assets/template/` (or `assets/<engine>/`) to `docs/mockups/<feature>/`. Th
 
 ## 6. Build from the spec
 
-- **Godot:** `python docs/mockups/kit/apply_godot.py <feature>` lists what the spec changes in the theme `.tres` and in the `[Export]` / `@export` defaults of the script each group names, keys with no export yet, and scenes that override those properties. `--write` applies.
+- **Godot:** `python docs/mockups/kit/apply_godot.py <feature>` lists what the spec changes in the theme `.tres` and in the `[Export]` / `@export` defaults of the script each group names, in the uniform defaults of a `<name>.gdshader` group, keys with no export yet, and scenes that override those properties. `--write` applies.
 - **Unity:** `python docs/mockups/kit/apply_uss.py <feature>` does the same for USS custom properties (`uss:` groups). ScriptableObject and Unreal DataTable values are applied by hand or by re-importing the edited table.
 - Build what doesn't exist yet: colours, fonts and panels in the engine's theme or style system; sizes, offsets, durations and strengths as editor-exposed properties grouped like the JSON, with the approved values as defaults.
 - Verify in the running game: screenshot each state the preview has and make `<feature>/build_vs_preview.png`, game shot beside preview shot. Fix what differs. Say what wasn't checked; browser and engine text antialiasing differ, so judge position and size, not edge pixels.
