@@ -10,51 +10,55 @@
 <script src="../kit/kit.js"></script>
 <script src="../kit/unreal_theme.js"></script>
 <script>
-// UNREAL EXAMPLE: a HUD panel whose colours, sizes and timings start from a DataTable exported to JSON (or CSV) under
-// the project. Replace the path, the row and field names read with get() and draw() with the feature's.
-//   "table: DT_HudStyle/<Row>"  one group per row (loadTable); written back by re-importing the edited export.
-//   "HudPanel"                  values that don't exist yet; they become UPROPERTY(EditAnywhere, Category = "HudPanel").
-const TABLE = "Content/UI/DT_HudStyle.json", ROW = "Default"; // from the project root
+// UNREAL EXAMPLE: a HUD panel whose layout comes from a C++ settings class and whose colours come from a DataTable.
+// Replace the paths, the class, row and field names read with get(), and draw() with the feature's.
+//   "HudPanelSettings"          UHudPanelSettings (a UDeveloperSettings): its header's defaults, overridden by
+//                               Config/DefaultGame.ini. apply_unreal.py writes the approved values back. A key the class
+//                               doesn't have yet (Fill below) is listed by apply_unreal.py with a declaration to paste.
+//   "table: DT_HudStyle/<Row>"  one group per DataTable row (loadTable); written back by re-importing the edited export.
+const HEADER = "Source/HudExample/UI/HudPanelSettings.h", CLASS = "HudPanelSettings"; // from the project root
+const TABLE = "Content/UI/DT_HudStyle.json", ROW = "Default";
 const FONT = "sans-serif"; // the game's font, declared in ../kit/project.css
 
-UnrealTheme.loadTable(TABLE).then(() => Kit.start({
-  feature: "FEATURE",
-  images: {
-    // backdrop: "img/backdrop.png",   // a real game screenshot of this spot, UI hidden
-  },
-  groups: {
-    HudPanel: { note: "UHudPanel UPROPERTYs", params: {
-      X: { value: 48, min: 0, max: 800, step: 4, unit: "px" },
-      Y: { value: 48, min: 0, max: 600, step: 4, unit: "px" },
-      Width: { value: 520, min: 200, max: 1000, step: 4, unit: "px" },
-      TitleSize: { value: 32, min: 12, max: 72, step: 2, unit: "px" },
-      Fill: { value: 0.7, min: 0, max: 1, step: 0.05, hint: "how full the bar is in this mock" },
-    } },
-    ...UnrealTheme.groups(),
-  },
-  variants: { a: {}, b: { [`table: DT_HudStyle/${ROW}.CornerRadius`]: 2, "HudPanel.Width": 680 } },
-  draw(ctx, v, s) {
-    UnrealTheme.use(v);
-    const r = field => UnrealTheme.get(ROW, field);
-    const p = v.HudPanel, size = p.TitleSize, pad = r("Padding/Left");
-    const h = r("Padding/Top") + r("Padding/Bottom") + pad + size + 24;
+Promise.all([UnrealTheme.loadClass(HEADER), UnrealTheme.loadTable(TABLE)]).then(() => {
+  const groups = UnrealTheme.groups();
+  // A new value, not in the class yet: it goes in the class's own group so the applier names the class it belongs to.
+  groups[CLASS].params.FillAmount = { value: 0.7, min: 0, max: 1, step: 0.05, section: "Bar", hint: "how full the bar is in this mock" };
+  Kit.start({
+    feature: "FEATURE",
+    images: {
+      // backdrop: "img/backdrop.png",   // a real game screenshot of this spot, UI hidden
+    },
+    groups,
+    variants: { a: {}, b: { [`table: DT_HudStyle/${ROW}.CornerRadius`]: 2, [`${CLASS}.Width`]: 680, [`${CLASS}.Fill`]: "Solid" } },
+    draw(ctx, v, s) {
+      UnrealTheme.use(v);
+      const r = field => UnrealTheme.get(ROW, field), c = field => UnrealTheme.get(CLASS, field);
+      const x = c("Position/X"), y = c("Position/Y"), width = c("Width"), size = c("TitleSize"), pad = r("Padding/Left");
+      const h = r("Padding/Top") + r("Padding/Bottom") + pad + size + 24;
 
-    if (s.images.backdrop) ctx.drawImage(s.images.backdrop, 0, 0);
-    else { ctx.fillStyle = "#40454d"; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height); }
-    ctx.globalAlpha = s.state === "fading" ? Math.min(1, s.t / r("FadeSeconds")) : 1;
+      if (s.images.backdrop) ctx.drawImage(s.images.backdrop, 0, 0);
+      else { ctx.fillStyle = "#40454d"; ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height); }
+      ctx.globalAlpha = s.state === "fading" ? Math.min(1, s.t / r("FadeSeconds")) : 1;
 
-    ctx.fillStyle = r("PanelColor");
-    ctx.beginPath(); ctx.roundRect(p.X, p.Y, p.Width, h, r("CornerRadius")); ctx.fill();
-    const top = p.Y + r("Padding/Top"), iconW = r("bShowIcons") ? size + pad : 0;
-    if (iconW) { ctx.fillStyle = r("Tint/SpecifiedColor"); ctx.fillRect(p.X + pad, top, size, size); }
-    ctx.fillStyle = r("TextColor"); ctx.font = `${size}px ${FONT}`; ctx.textBaseline = "top";
-    ctx.fillText(r("Title"), p.X + pad + iconW, top);
-    const barY = top + size + pad, barW = p.Width - pad - r("Padding/Right");
-    ctx.fillStyle = "#00000066"; ctx.fillRect(p.X + pad, barY, barW, 24);
-    ctx.fillStyle = r("AccentColor"); ctx.fillRect(p.X + pad, barY, barW * p.Fill, 24);
-    ctx.globalAlpha = 1;
-  },
-}));
+      ctx.fillStyle = r("PanelColor");
+      ctx.beginPath(); ctx.roundRect(x, y, width, h, r("CornerRadius")); ctx.fill();
+      const top = y + r("Padding/Top"), iconW = r("bShowIcons") ? size + pad : 0;
+      if (iconW) { ctx.fillStyle = r("Tint/SpecifiedColor"); ctx.fillRect(x + pad, top, size, size); }
+      ctx.fillStyle = r("TextColor"); ctx.font = `${size}px ${FONT}`; ctx.textBaseline = "top";
+      ctx.fillText(r("Title"), x + pad + iconW, top);
+      const barY = top + size + pad, barW = width - pad - r("Padding/Right"), fill = c("FillAmount");
+      ctx.fillStyle = c("TrackColor"); ctx.fillRect(x + pad, barY, barW, 24);
+      ctx.fillStyle = r("AccentColor");
+      if (c("Fill") === "Solid") ctx.fillRect(x + pad, barY, barW * fill, 24);
+      else {
+        const n = c("Segments"), gap = 4, w = (barW - gap * (n - 1)) / n;
+        for (let i = 0; i < Math.round(n * fill); i++) ctx.fillRect(x + pad + i * (w + gap), barY, w, 24);
+      }
+      ctx.globalAlpha = 1;
+    },
+  });
+});
 </script>
 </body>
 </html>

@@ -2,6 +2,12 @@
 
 All notable changes to game-ui-proof. Versions follow [semver](https://semver.org); the version lives in `.claude-plugin/plugin.json`.
 
+## Unreleased
+
+- Unreal C++ class defaults: `UnrealTheme.loadClass(header, { className, categories, ini })` reads a header's UCLASS defaults (a `UDeveloperSettings` or any class) into one group per class, named without its U / A / F prefix: every editable UPROPERTY with a literal default, a section per Category, doc comments as hints, ClampMin / ClampMax / UIMin / UIMax as slider ranges, same-header enums as dropdowns, FLinearColor / FColor as colours, FVector2D / FVector / FIntPoint / FMargin members as `Prop/X`; a Config class's `Config/Default<Config>.ini` overrides replace the header defaults. `UnrealTheme.get(class, key)` reads them.
+- `apply_unreal.py` writes a spec back: `Key=Value` in `[/Script/<Module>.<Class>]` of `Default<Config>.ini` (default; section created if missing, line endings kept), or `--target header` for the declaration's default. Lists keys with no UPROPERTY yet with a declaration to paste. Dry run by default; `test_apply_unreal.py` checks it.
+- The Unreal example page and sample project use a settings class (`HudPanelSettings`) next to the DataTable; CI dry-runs the applier on it.
+
 ## 1.1.0 (2026-11-14)
 
 - Godot shader uniforms: `GodotTheme.loadShader(resPath)` reads a `.gdshader`'s uniforms as a tuning group named after the file (source_color vec3/vec4 colours, hint_range sliders, bools, other defaults), read in `draw` with `GodotTheme.uniform(file, name)`; `apply_godot.py` writes a `"<name>.gdshader"` group back into that shader's uniform defaults and lists `.tscn` / `.tres` that set `shader_parameter/<name>`. `test_apply_godot.py` checks it.

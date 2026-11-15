@@ -27,6 +27,9 @@ jobs:
       - name: apply_godot.py shader uniforms
         run: python skills/ui-preview/assets/kit/test_apply_godot.py
 
+      - name: apply_unreal.py ini and header writes
+        run: python skills/ui-preview/assets/kit/test_apply_unreal.py
+
       - name: Python compiles
         run: python -m compileall -q .
 
@@ -51,6 +54,10 @@ jobs:
           echo '{"variant": "a", "values": {"uss: Theme": {"--panel-radius": 4}}}' > docs/mockups/hud_panel/values.json
           python docs/mockups/kit/apply_uss.py hud_panel | tee out.txt
           grep -q -- "--panel-radius: 12px -> 4px" out.txt
+          cd ../unreal
+          echo '{"variant": "a", "values": {"HudPanelSettings": {"Width": 640, "TitleSize": 30, "FillAmount": 0.5}}}' > docs/mockups/hud_panel/values.json
+          python docs/mockups/kit/apply_unreal.py hud_panel | tee out.txt
+          grep -q "Width: 520 -> 640" out.txt && ! grep -q "TitleSize" out.txt && grep -q "FillAmount: no UPROPERTY yet" out.txt
 
       - name: Upload the sheets
         if: always() && matrix.python == '3.13'

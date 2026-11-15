@@ -6,7 +6,7 @@ Fake Godot, Unity and Unreal projects with just enough files for the example pag
 |---|---|---|---|
 | `godot/` | `project.godot`, `ui/theme.tres`, `ui/ConfirmDialog.cs`, `ui/health_bar.gd` | `confirm_dialog` (Godot), `health_bar` (template) | `apply_godot.py` |
 | `unity/` | `Assets/UI/Theme.uss`, `Assets/UI/HudStyle.asset` | `hud_panel` | `apply_uss.py` |
-| `unreal/` | `Content/UI/DT_HudStyle.json` (a DataTable export) | `hud_panel` | by hand |
+| `unreal/` | `Source/HudExample/UI/HudPanelSettings.h` + `Config/DefaultGame.ini` (a UDeveloperSettings), `Content/UI/DT_HudStyle.json` (a DataTable export) | `hud_panel` | `apply_unreal.py` (the class); the DataTable by hand |
 
 ```bash
 python examples/setup.py

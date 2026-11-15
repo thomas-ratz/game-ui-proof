@@ -5,7 +5,7 @@ An open-source (MIT) Claude Code plugin with one skill, `ui-preview`: the agent 
 ## Layout
 - `.claude-plugin/plugin.json` (name, version: bump on every release) and `marketplace.json` (this repo is its own marketplace).
 - `skills/ui-preview/SKILL.md`: the workflow the agent follows. Keep it lean; detail goes in `references/kit.md` (page format, saving, `serve.py`, `shots.py`) and `references/engines.md` (Godot, Unity, Unreal, web).
-- `skills/ui-preview/assets/kit/`: what users copy into their project (`docs/mockups/kit/`). `project.css` is the only file a user edits. `godot_theme.js` + `apply_godot.py`, `unity_theme.js` + `apply_uss.py`, `unreal_theme.js` are per engine.
+- `skills/ui-preview/assets/kit/`: what users copy into their project (`docs/mockups/kit/`). `project.css` is the only file a user edits. `godot_theme.js` + `apply_godot.py`, `unity_theme.js` + `apply_uss.py`, `unreal_theme.js` + `apply_unreal.py` are per engine.
 - `skills/ui-preview/assets/{template,godot,unity,unreal}/`: example pages. `assets/godot/game_shots.gd`: backdrop screenshot template.
 - `docs/demo/`: neutral demo previews (`hud/`, `pause/`, `dialogue/`, `transition/`, sharing the procedural level in `scene.js`; no game's art), the README tour `demo.gif`/`demo.mp4`, and `record.py`, which re-records it (`python docs/demo/record.py`). `build_site.py` builds the GitHub Pages demo into `_site/` (index, previews, review sheets).
 - `examples/{godot,unity,unreal}/`: fake projects the example pages read and the appliers write; `python examples/setup.py` copies the kit and pages into their `docs/mockups/` (git-ignored).
@@ -21,7 +21,7 @@ An open-source (MIT) Claude Code plugin with one skill, `ui-preview`: the agent 
 - Never commit or push unless asked.
 
 ## Checks before a release
-- `python skills/ui-preview/assets/kit/test_serve.py` and `test_apply_godot.py` (exit code = failed checks).
+- `python skills/ui-preview/assets/kit/test_serve.py`, `test_apply_godot.py` and `test_apply_unreal.py` (exit code = failed checks).
 - `python -m py_compile` on every `.py`, `node --check` on every `.js`.
 - Render the example pages: `python examples/setup.py`, then `python docs/mockups/kit/shots.py <feature>` from each sample project (CI does this and uploads the sheets); look at each `sheet.png`.
 - Render the demo: `python docs/demo/build_site.py`, then look at `_site/`.

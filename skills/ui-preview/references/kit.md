@@ -11,9 +11,10 @@
 | `shots.py` | Review sheet | no |
 | `test_serve.py` | Regression check for `serve.py`'s security rules | no |
 | `test_apply_godot.py` | Regression check for `apply_godot.py`'s shader groups | no |
+| `test_apply_unreal.py` | Regression check for `apply_unreal.py`'s ini and header writes | no |
 | `godot_theme.js`, `apply_godot.py` | Godot reader and applier | no |
 | `unity_theme.js`, `apply_uss.py` | Unity reader and USS applier | no |
-| `unreal_theme.js` | Unreal DataTable reader | no |
+| `unreal_theme.js`, `apply_unreal.py` | Unreal reader (C++ class defaults + ini, DataTable exports) and class-default applier | no |
 
 ## A page
 

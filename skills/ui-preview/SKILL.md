@@ -12,11 +12,11 @@ Nothing that changes how the game's UI looks is built until the person has tuned
 
 ## 1. Set up (once per project)
 
-- Copy `assets/kit/` to `docs/mockups/kit/` (another folder works: pass `--mockups` to the scripts). Engine-specific files can be left out when unused: `godot_theme.js` + `apply_godot.py` (Godot), `unity_theme.js` + `apply_uss.py` (Unity), `unreal_theme.js` (Unreal). Godot: also copy `assets/godot/project.js` into `kit/` and fill it in (fonts, key glyphs); the Godot pages load it from there.
+- Copy `assets/kit/` to `docs/mockups/kit/` (another folder works: pass `--mockups` to the scripts). Engine-specific files can be left out when unused: `godot_theme.js` + `apply_godot.py` (Godot), `unity_theme.js` + `apply_uss.py` (Unity), `unreal_theme.js` + `apply_unreal.py` (Unreal). Godot: also copy `assets/godot/project.js` into `kit/` and fill it in (fonts, key glyphs); the Godot pages load it from there.
 - `project.css` is the only kit file to edit: the game's fonts (`@font-face`) and the panel palette, including `--display`. kit.js loads every declared font before drawing.
 - Keep the previews out of the engine's import (Godot: an empty `.gdignore` in `docs/mockups/`) and add `docs/mockups/*/values.draft.json` and `docs/mockups/*/shots/` to `.gitignore`.
 - Serve the project root: `python docs/mockups/kit/serve.py` (stdlib only), then open `http://127.0.0.1:8765/docs/mockups/<feature>/`. Pages load the game's art by relative path and save their tuning to disk (§5).
-- Reading the project's own styles into the panel: Godot `GodotTheme` (theme `.tres`), Unity `UnityTheme` (`.uss`, ScriptableObject `.asset`), Unreal `UnrealTheme` (DataTable exported to JSON/CSV). See `references/engines.md`; each has a working example page in `assets/<engine>/`.
+- Reading the project's own styles into the panel: Godot `GodotTheme` (theme `.tres`), Unity `UnityTheme` (`.uss`, ScriptableObject `.asset`), Unreal `UnrealTheme` (C++ class defaults from the header and `Default*.ini`, DataTable exported to JSON/CSV). See `references/engines.md`; each has a working example page in `assets/<engine>/`.
 
 ## 2. Ask, then get the real backdrop
 
@@ -52,7 +52,8 @@ Copy `assets/template/` (or `assets/<engine>/`) to `docs/mockups/<feature>/`. Th
 ## 6. Build from the spec
 
 - **Godot:** `python docs/mockups/kit/apply_godot.py <feature>` lists what the spec changes in the theme `.tres` and in the `[Export]` / `@export` defaults of the script each group names, in the uniform defaults of a `<name>.gdshader` group, keys with no export yet, and scenes that override those properties. `--write` applies.
-- **Unity:** `python docs/mockups/kit/apply_uss.py <feature>` does the same for USS custom properties (`uss:` groups). ScriptableObject and Unreal DataTable values are applied by hand or by re-importing the edited table.
+- **Unity:** `python docs/mockups/kit/apply_uss.py <feature>` does the same for USS custom properties (`uss:` groups). ScriptableObject values are applied by hand.
+- **Unreal:** `python docs/mockups/kit/apply_unreal.py <feature>` lists what the spec changes in each group's C++ class: `Config/Default<Config>.ini` overrides for a Config class (`--target header` rewrites the declaration's default instead), keys with no UPROPERTY yet (with a declaration to paste), and defaults to set by hand. `--write` applies. DataTable values are applied by re-importing the edited export.
 - Build what doesn't exist yet: colours, fonts and panels in the engine's theme or style system; sizes, offsets, durations and strengths as editor-exposed properties grouped like the JSON, with the approved values as defaults.
 - Verify in the running game: screenshot each state the preview has and make `<feature>/build_vs_preview.png`, game shot beside preview shot. Fix what differs. Say what wasn't checked; browser and engine text antialiasing differ, so judge position and size, not edge pixels.
 - A later change to an approved look is a new round: preview, sheet, Save, build.

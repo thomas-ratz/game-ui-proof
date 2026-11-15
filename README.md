@@ -4,7 +4,7 @@
 
 **Tune your game's UI in the browser before your AI agent builds it.** The agent draws the proposal over a real screenshot of your game at its real resolution, with a panel of sliders and colour pickers. You tune it and press Save. The `values.json` it writes is the spec, and a script applies it to your engine.
 
-A [Claude Code](https://code.claude.com) plugin for game developers (one skill, `ui-preview`). Works with any engine; reads and writes Godot and Unity files, reads Unreal DataTables.
+A [Claude Code](https://code.claude.com) plugin for game developers (one skill, `ui-preview`). Works with any engine; reads and writes Godot, Unity and Unreal (C++ class defaults and `Default*.ini`) files, reads Unreal DataTables.
 
 ![A tour: tuning a HUD, picking between menu layouts the agent proposed (and its recommendation), a dialogue box, a level-clear transition with Reduce Motion, the review sheet, and Save writing values.json](docs/demo/demo.gif)
 
@@ -52,7 +52,7 @@ Without the plugin system, copy `skills/ui-preview/` to `~/.claude/skills/ui-pre
 |---|---|---|
 | Godot 4 | Theme `.tres` (colours, font sizes, StyleBoxFlat/Texture) | Theme entries; C# `[Export]` and GDScript `@export` defaults |
 | Unity | USS custom properties; ScriptableObject `.asset` fields | USS custom properties |
-| Unreal | DataTable exported to JSON or CSV | By hand / re-import |
+| Unreal | C++ class defaults (`UDeveloperSettings` and other UCLASSes) with their `Default*.ini` overrides; DataTable exported to JSON or CSV | `Default*.ini` overrides or header defaults; DataTables by re-import |
 | Anything else | Values typed into the page | By hand |
 
 ## Security
